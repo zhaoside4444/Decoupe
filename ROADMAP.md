@@ -173,10 +173,10 @@
 ### 17. Tests renderer
 - [x] Tester le calendrier, les filtres, la recherche et les états vides (logique partagée dans src/shared).
 - [x] Tester les interactions clavier (moveListIndex, paletteMatches dans src/shared/nav).
-- [~] jsdom et React Testing Library non installés (pas de dépendance réseau) ; tests de composants React reportés.
+- [x] Tests de composants React avec jsdom et React Testing Library (Sidebar, NarrativeTimeline, palette de commandes).
 - [x] Aucun test CDP.
 
-**Effort : M** — Livré le 25 octobre 2026 : tests unitaires de la logique pure (nav, sort, settings, mentions, text, wiki-suggestions, related, markdown-html, search, backlinks, timeline, help, vaults), soit 18 fichiers et 172 tests.
+**Effort : M** — Livré le 25 octobre 2026 : tests unitaires de la logique pure (nav, sort, settings, mentions, text, wiki-suggestions, related, markdown-html, search, backlinks, timeline, help, vaults). **Complété le 30 octobre 2026** : tests de composants en jsdom (Sidebar, NarrativeTimeline, palette de commandes), soit 22 fichiers et 208 tests.
 
 ### 18. Tests d'intégration
 - [x] Scénarios complets : création, tags, dates, liens, corbeille (tests/integration.test.ts).

@@ -47,7 +47,7 @@ Au premier lancement, choisissez un dossier de notes. L'application crée la str
 | `npm run dev` | Lance l'application en développement. |
 | `npm start` | Prévisualise le build avec Electron. |
 | `npm run build` | Compile le processus principal, le preload et le renderer dans `out/`. |
-| `npm run typecheck` | Vérifie les types TypeScript (web + node). |
+| `npm run typecheck` | Vérifie les types TypeScript (web, node et tests). |
 | `npm test` | Lance la suite Vitest. |
 | `npm run dist` | Compile puis construit les paquets avec electron-builder dans `release/`. |
 | `npm run icon` | Régénère les icônes depuis `build/icon.png`. |
@@ -93,7 +93,7 @@ npm test
 npm run build
 ```
 
-La suite couvre la logique partagée (texte, tags, recherche, liens, timeline, aide, vaults) et des scénarios d'intégration sur un vault temporaire.
+La suite couvre la logique partagée (texte, tags, recherche, liens, timeline, aide, vaults), les composants critiques (barre latérale, timeline, palette de commandes) via jsdom et React Testing Library, ainsi que des scénarios d'intégration sur un vault temporaire.
 
 ## Contribuer
 

@@ -20,7 +20,7 @@ npm ci
 ## Vérifications avant build
 
 ```bash
-npm run typecheck   # TypeScript web + node
+npm run typecheck   # TypeScript web, node et tests
 npm test            # Vitest
 npm run build       # electron-vite build -> out/
 ```
