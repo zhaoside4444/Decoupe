@@ -26,9 +26,15 @@ L'application détecte automatiquement :
 
 ---
 
-## Changement rapide de dossier (vault switcher)
+## Changer de dossier (vault switcher)
 
-Le bouton dans la barre latérale (`FolderOpen`) ouvre un menu rapide avec les 5 derniers dossiers ouverts (`localStorage` : `recentVaults`). Entrez le numéro du dossier dans le prompt, ou tapez le chemin complet. Le dossier est enregistré automatiquement à chaque ouverture (`applyVault`).
+Le bouton `FolderOpen` dans l'en-tête de la barre latérale ouvre un menu listant les 5 derniers dossiers utilisés (`localStorage` : `recentVaults`). Le dossier courant porte le badge « actuel ». Choisir un autre dossier bascule immédiatement dessus ; « Choisir un autre dossier… » ouvre le sélecteur système. Le dossier est enregistré automatiquement à chaque ouverture (`applyVault`).
+
+## Barre latérale au clavier
+
+- `Tab` parcourt les éléments ; `Entrée` ou `Espace` ouvre un dossier ou applique un filtre de tag.
+- Les boutons crayon et poubelle d'une ligne sont atteignables au clavier sans changer la sélection.
+- `Échap` ferme le menu des dossiers et rend le focus au bouton.
 
 ---
 

@@ -1,6 +1,6 @@
 ﻿# Roadmap Decoupe
 
-> État au 24 octobre 2026 — version 0.1.0
+> État au 30 octobre 2026 — version 0.1.0
 
 ## Principes
 
@@ -21,6 +21,9 @@
 - Modifications externes : détection de la note ouverte, garde d’écriture, rechargement ou conservation locale, suppression et déplacement.
 - Liens entrants : panneau latéral avec extraits, occurrences, espaces, ouverture en un clic et actualisation automatique.
 - Autocomplétion des wiki-liens : suggestions après `[[`, recherche titre/espace, navigation clavier et création des notes manquantes.
+- Timeline narrative : personnages × chapitres, mode compact, filtre, légende interactive, navigation clavier, exports PNG et PDF.
+- Notes liées suggérées, mentions non liées convertibles en wiki-liens, palette de commandes, sélection multiple, export PDF, tri et épinglage.
+- Sélecteur de dossiers récents et navigation clavier de la barre latérale.
 - Packaging portable ZIP fonctionnel.
 
 ## Phase 1 — Fiabilité des données
@@ -150,7 +153,7 @@
 
 **Effort : L** — Livré le 25 octobre 2026 : dialogue PdfExportDialog (Option C), rendu HTML complet via uildPdfDocumentHtml (titres, listes, citations, code, tableaux, images, wiki-liens), intégration des notes liées en mode synthèse (cartes résumé) ou annexes complètes (saut de page par note), thème pastel/monochrome, IPC printToPDF via BrowserWindow caché, enregistrement via dialog.showSaveDialog, ouverture du PDF via shell.openPath.
 
-### 18. Timeline narrative (écriture de livres)
+### 16. Timeline narrative (écriture de livres)
 - [x] Identifier les personnages (#personnage ou espace "Personnages") et les chapitres (#chapitre ou espace "Chapitres").
 - [x] Visualiser les apparitions par chapitre (points sur une grille personnages × chapitres).
 - [x] Trier les chapitres par numéro de frontmatter (champ chapter/chapitre) ou par date de création.
@@ -161,28 +164,28 @@
 - [x] Légende interactive : cliquer sur un nom isole sa ligne, second clic pour tout réafficher.
 - [x] Navigation clavier : flèches entre personnages/apparitions, Entrée ouvre, Échap ferme.
 
-**Effort : M** — Livré le 25 octobre 2026 : module src/shared/timeline.ts (buildTimelineData, chapterFromFrontmatter), composant NarrativeTimeline.tsx (SVG interactif, survol, défilement), bouton dans la sidebar et la palette de commandes, 6 tests unitaires. Pas de graphe global : timeline ciblée sur les personnages et leurs apparitions par chapitre.
+**Effort : M** — Livré le 25 octobre 2026 : module src/shared/timeline.ts (buildTimelineData, chapterFromFrontmatter), composant NarrativeTimeline.tsx (SVG interactif, survol, défilement), bouton dans la sidebar et la palette de commandes, 17 tests unitaires. Pas de graphe global : timeline ciblée sur les personnages et leurs apparitions par chapitre.
 
-**Effort : S** — Livré le 28 octobre 2026 : réécriture propre du composant (hooks avant le retour, props `data`), mode compact persisté (`decoupe.timeline.compact`), filtre via `foldName`, légende à puces avec compteur d'apparitions et isolation de ligne, info-bulles en coordonnées écran.
+**Effort : S** — Livré le 28 octobre 2026 : réécriture propre du composant (hooks avant le retour, props `data`), mode compact persisté (`decoupe.timeline.compact`), filtre via `foldName`, légende à puces avec compteur d'apparitions et isolation de ligne, info-bulles en coordonnées écran, exports PNG/PDF et zoom/pan au-delà de 50 colonnes.
 
 ## Phase 5 — Qualité et distribution
 
-### 15. Tests renderer
+### 17. Tests renderer
 - [x] Tester le calendrier, les filtres, la recherche et les états vides (logique partagée dans src/shared).
 - [x] Tester les interactions clavier (moveListIndex, paletteMatches dans src/shared/nav).
 - [~] jsdom et React Testing Library non installés (pas de dépendance réseau) ; tests de composants React reportés.
 - [x] Aucun test CDP.
 
-**Effort : M** — Livré le 25 octobre 2026 : tests unitaires de la logique pure (nav, sort, settings, mentions, text, wiki-suggestions, related, markdown-html, search, backlinks).
+**Effort : M** — Livré le 25 octobre 2026 : tests unitaires de la logique pure (nav, sort, settings, mentions, text, wiki-suggestions, related, markdown-html, search, backlinks, timeline, help, vaults), soit 18 fichiers et 172 tests.
 
-### 16. Tests d'intégration
+### 18. Tests d'intégration
 - [x] Scénarios complets : création, tags, dates, liens, corbeille (tests/integration.test.ts).
 - [x] Vérifier la conservation de `created` après toutes les écritures.
 - [x] Vérifier les rollbacks et les annulations.
 
 **Effort : M** — Livré le 25 octobre 2026 : 17 tests d'intégration avec données seed (création, déplacement, corbeille/restauration, recherche par tag/texte/date/plage, conservation de `created` après write/move/trash, rollbacks rename/delete tag, conflit expectedContent, backlinks, nettoyage de liens).
 
-### 17. Distribution
+### 19. Distribution
 - [ ] Décider si l’application doit être distribuée hors de la machine actuelle.
 - [ ] Obtenir un certificat de signature de code.
 - [ ] Réactiver l’installateur NSIS.
@@ -204,6 +207,8 @@
 8. [x] Navigation clavier et palette de commandes.
 9. [x] Export PDF (Option C).
 10. [x] Tests renderer et intégration.
+11. [x] Timeline narrative, exports PNG/PDF et confort de la barre latérale.
+12. [ ] Distribution (installeur, signature, documentation de build).
 
 ## Décisions à prendre
 
@@ -211,4 +216,4 @@
 - Les sauvegardes doivent-elles être locales, ou s’appuyer sur le service de synchronisation du vault ?
 - Faut-il autoriser la modification manuelle de la date de création ?
 - Quel niveau de compatibilité Obsidian faut-il garantir pour les liens et le frontmatter ?
-- Faut-il conserver les notes épinglées dans le frontmatter ou dans un index interne ?
+- Notes épinglées : **décision** frontmatter `pinned: true`, portable et lisible hors application.

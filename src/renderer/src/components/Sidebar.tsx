@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type DragEvent, type RefObject } from 'react'
+import { useEffect, useRef, useState, type DragEvent, type ReactNode, type RefObject } from 'react'
 import {
   Archive,
   BookOpen,
@@ -19,9 +19,27 @@ import {
 } from 'lucide-react'
 import type { Space, TagSummary, VaultInfo } from '@shared/types'
 import { vaultBaseName } from '@shared/vaults'
+import { parseHelpInline, parseHelpMarkdown } from '@shared/help'
+import helpMarkdown from '../../../../AIDE.md?raw'
 import { parseSearchQuery } from '@shared/text'
 import { NoteCalendar } from './NoteCalendar'
 import { restoreFocusIfLost } from '../util'
+
+const helpDocument = parseHelpMarkdown(helpMarkdown)
+
+function renderHelpText(text: string): ReactNode {
+  return parseHelpInline(text).map((token, index) => {
+    if (token.code) {
+      return (
+        <code key={index} className="help-code">
+          {token.text}
+        </code>
+      )
+    }
+    if (token.strong) return <strong key={index}>{token.text}</strong>
+    return <span key={index}>{token.text}</span>
+  })
+}
 
 interface SidebarProps {
   vault: VaultInfo
@@ -280,23 +298,6 @@ export function Sidebar({
   }
 
   const inboxDrop = dropProps('')
-
-  const helpContent = `# Aide — Découpe
-
-## Timeline narrative (écriture de livres)
-Pour utiliser la timeline :
-- Personnages : \`#personnage\` ou espace \`Personnages\`.
-- Chapitres : \`#chapitre\` ou \`#chapter\` ou espace \`Chapitres\`.
-- Liens wiki dans le texte : \`[[Alice]]\`.
-
-Détection automatique : liens (direct), tags partagés, mentions texte.
-Interactions : filtre, mode compact, légende (isoler ligne), clavier, zoom/pan (>50 chapitres), export PNG/PDF.
-
-## Changer de dossier
-Le bouton \`FolderOpen\` (en-tête de la barre latérale) ouvre la liste des 5 derniers dossiers utilisés. Le dossier courant est marqué « actuel ». « Choisir un autre dossier… » ouvre le sélecteur système. Navigation clavier : Tab puis Entrée, Échap pour fermer.
-
-## Mention à lier
-Dans le texte, une mention du nom (ex. \`Alice traverse\`) devient un point gris (\`is-mention\`). Remplacez par \`[[Alice]]\` pour un lien direct (point accent, ouvre la note).`
 
   return (
     <>
@@ -729,14 +730,38 @@ Dans le texte, une mention du nom (ex. \`Alice traverse\`) devient un point gris
             onClick={(e) => e.stopPropagation()}
           >
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <h2 style={{ margin: 0, fontSize: 16 }}>Aide — Découpe</h2>
+              <h2 style={{ margin: 0, fontSize: 16 }}>{helpDocument.title}</h2>
               <button type="button" className="icon-btn" aria-label="Fermer" onClick={() => setHelpOpen(false)}>
                 <X size={15} />
               </button>
             </header>
-            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', color: 'var(--ink)', margin: 0 }}>
-              {helpContent}
-            </pre>
+            <div className="help-body">
+              {helpDocument.blocks.map((block, index) => {
+                if (block.kind === 'heading') {
+                  const Heading = block.level === 3 ? 'h3' : 'h2'
+                  return (
+                    <Heading key={index} className={`help-heading help-heading-${block.level}`}>
+                      {renderHelpText(block.text)}
+                    </Heading>
+                  )
+                }
+                if (block.kind === 'list') {
+                  return (
+                    <ul key={index} className="help-list">
+                      {block.items.map((item, itemIndex) => (
+                        <li key={itemIndex}>{renderHelpText(item)}</li>
+                      ))}
+                    </ul>
+                  )
+                }
+                if (block.kind === 'rule') return <hr key={index} className="help-rule" />
+                return (
+                  <p key={index} className="help-paragraph">
+                    {renderHelpText(block.text)}
+                  </p>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
