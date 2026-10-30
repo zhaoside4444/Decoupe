@@ -24,7 +24,7 @@
 - Timeline narrative : personnages × chapitres, mode compact, filtre, légende interactive, navigation clavier, exports PNG et PDF.
 - Notes liées suggérées, mentions non liées convertibles en wiki-liens, palette de commandes, sélection multiple, export PDF, tri et épinglage.
 - Sélecteur de dossiers récents et navigation clavier de la barre latérale.
-- Packaging portable ZIP fonctionnel.
+- Packaging Windows : archive ZIP et installateur NSIS, README, BUILD.md, licence MIT et workflow CI.
 
 ## Phase 1 — Fiabilité des données
 
@@ -186,12 +186,14 @@
 **Effort : M** — Livré le 25 octobre 2026 : 17 tests d'intégration avec données seed (création, déplacement, corbeille/restauration, recherche par tag/texte/date/plage, conservation de `created` après write/move/trash, rollbacks rename/delete tag, conflit expectedContent, backlinks, nettoyage de liens).
 
 ### 19. Distribution
-- [ ] Décider si l’application doit être distribuée hors de la machine actuelle.
+- [x] Décider si l’application doit être distribuée hors de la machine actuelle.
 - [ ] Obtenir un certificat de signature de code.
-- [ ] Réactiver l’installateur NSIS.
-- [ ] Documenter la procédure de build et de validation.
+- [x] Réactiver l’installateur NSIS.
+- [x] Documenter la procédure de build et de validation.
 
-**Effort : externe** — Bloqué par le certificat et la politique Code Integrity locale.
+**Effort : S** — Livré le 30 octobre 2026 (hors signature) : cible `nsis` (`oneClick: false`, `perMachine: false`, raccourcis bureau et menu Démarrer, `uninstallDisplayName`), README, BUILD.md (build, artefacts, checklist de validation, dépannage), LICENSE MIT et workflow CI (vérification sur push/PR, packaging Windows sur tag `v*`).
+
+**Effort : externe** — Reste la signature de code, bloquée par le certificat et la politique Code Integrity locale.
 
 > **Décision open source** : le projet sera distribué en open source. Signature gratuite possible via SignPath (signpath.io) ou Azure Trusted Signing (~10 $/mois).
 
@@ -208,7 +210,8 @@
 9. [x] Export PDF (Option C).
 10. [x] Tests renderer et intégration.
 11. [x] Timeline narrative, exports PNG/PDF et confort de la barre latérale.
-12. [ ] Distribution (installeur, signature, documentation de build).
+12. [x] Distribution technique : installateur NSIS, README, BUILD.md, licence MIT et CI.
+13. [ ] Signature de code et première release publique.
 
 ## Décisions à prendre
 
