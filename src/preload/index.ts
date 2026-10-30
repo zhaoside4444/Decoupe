@@ -21,7 +21,8 @@ import type {
 const api: AppApi = {
   getConfig: () => ipcRenderer.invoke(IPC.getConfig) as Promise<{ vault: VaultInfo | null }>,
   createVault: () => ipcRenderer.invoke(IPC.createVault) as Promise<VaultInfo | null>,
-  openVault: () => ipcRenderer.invoke(IPC.openVault) as Promise<VaultInfo | null>,
+  openVault: (root?: string) =>
+    ipcRenderer.invoke(IPC.openVault, root) as Promise<VaultInfo | null>,
   revealVault: () => ipcRenderer.invoke(IPC.revealVault) as Promise<void>,
 
   listNotes: () => ipcRenderer.invoke(IPC.listNotes) as Promise<NoteSummary[]>,

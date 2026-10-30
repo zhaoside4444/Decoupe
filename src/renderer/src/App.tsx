@@ -36,6 +36,7 @@ import { findRelatedNotes } from '@shared/related'
 import type { FullNoteContent } from '@shared/markdown-html'
 import type { RelatedNote } from '@shared/related'
 import { buildTimelineData } from '@shared/timeline'
+import { updateRecentVaults } from '@shared/vaults'
 import { detectExternalChange, type ExternalChange } from '@shared/external'
 import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
@@ -593,6 +594,14 @@ function MainApp() {
       setTrashOpen(false)
       setBackupOpen(false)
       const next = await refresh(false)
+      try {
+        const recentRaw = window.localStorage.getItem('recentVaults')
+        const recent = (recentRaw ? JSON.parse(recentRaw) : []) as string[]
+        const updated = updateRecentVaults(recent, info.path)
+        window.localStorage.setItem('recentVaults', JSON.stringify(updated))
+      } catch {
+        // Ignoré
+      }
       if (next.length) {
         const spaceNames = next.map((n) => n.space)
         const fallbackSpace = spaceOfPath(next[0].path)
@@ -606,14 +615,6 @@ function MainApp() {
           setSelectedContent(content)
         } catch (error) {
           showToast(errorMessage(error))
-        }
-        try {
-          const recentRaw = window.localStorage.getItem('recentVaults')
-          const recent = (recentRaw ? JSON.parse(recentRaw) : []) as string[]
-          const updated = [info.path, ...recent.filter((p: string) => p !== info.path)].slice(0, 5)
-          window.localStorage.setItem('recentVaults', JSON.stringify(updated))
-        } catch {
-          // Ignoré
         }
       }
     },
@@ -1459,14 +1460,17 @@ function MainApp() {
     [activeSpace, raiseExternalChange, refresh, reloadSelected, showToast]
   )
 
-  const switchVault = useCallback(async (): Promise<void> => {
-    try {
-      const info = await window.api.openVault()
-      if (info) await applyVault(info)
-    } catch (error) {
-      showToast(errorMessage(error))
-    }
-  }, [applyVault, showToast])
+  const switchVault = useCallback(
+    async (root?: string): Promise<void> => {
+      try {
+        const info = await window.api.openVault(root)
+        if (info) await applyVault(info)
+      } catch (error) {
+        showToast(errorMessage(error))
+      }
+    },
+    [applyVault, showToast]
+  )
 
   const revealVault = useCallback(async (): Promise<void> => {
     try {
@@ -1673,7 +1677,7 @@ function MainApp() {
         onRenameSpace={renameSpace}
         onTrashSpace={deleteSpace}
         onMoveNote={(path, space) => void moveNote(path, space)}
-        onSwitchVault={() => void switchVault()}
+        onSwitchVault={(root) => void switchVault(root)}
         onReveal={() => void revealVault()}
         search={search}
         onSearch={setSearch}

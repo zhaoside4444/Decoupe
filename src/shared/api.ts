@@ -19,7 +19,7 @@ import type {
 export interface AppApi {
   getConfig: () => Promise<{ vault: VaultInfo | null }>
   createVault: () => Promise<VaultInfo | null>
-  openVault: () => Promise<VaultInfo | null>
+  openVault: (root?: string) => Promise<VaultInfo | null>
   revealVault: () => Promise<void>
 
   listNotes: () => Promise<NoteSummary[]>

@@ -18,6 +18,7 @@ import {
   X
 } from 'lucide-react'
 import type { Space, TagSummary, VaultInfo } from '@shared/types'
+import { vaultBaseName } from '@shared/vaults'
 import { parseSearchQuery } from '@shared/text'
 import { NoteCalendar } from './NoteCalendar'
 import { restoreFocusIfLost } from '../util'
@@ -33,7 +34,7 @@ interface SidebarProps {
   onRenameSpace: (from: string, to: string) => Promise<void>
   onTrashSpace: (name: string) => Promise<void>
   onMoveNote: (path: string, space: string) => void
-  onSwitchVault: () => void
+  onSwitchVault: (root?: string) => void
   onReveal: () => void
   search: string
   onSearch: (value: string) => void
@@ -90,6 +91,11 @@ export function Sidebar({
   const [renameTagValue, setRenameTagValue] = useState('')
   const [renameTagBusy, setRenameTagBusy] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [vaultMenuOpen, setVaultMenuOpen] = useState(false)
+  const [recentVaults, setRecentVaults] = useState<string[]>([])
+  const vaultMenuRef = useRef<HTMLDivElement>(null)
+  const vaultMenuListRef = useRef<HTMLDivElement>(null)
+  const vaultButtonRef = useRef<HTMLButtonElement>(null)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -98,6 +104,38 @@ export function Sidebar({
   const parsedSearch = parseSearchQuery(search)
   const activeTags = new Set(parsedSearch.tags.map((tag) => tag.toLowerCase()))
   const activeDate = parsedSearch.date
+
+  useEffect(() => {
+    if (!vaultMenuOpen) return
+    try {
+      const raw = window.localStorage.getItem('recentVaults')
+      setRecentVaults(raw ? (JSON.parse(raw) as string[]) : [])
+    } catch {
+      setRecentVaults([])
+    }
+    const focusTimer = window.setTimeout(() => {
+      vaultMenuListRef.current?.querySelector<HTMLButtonElement>('button')?.focus()
+    }, 0)
+    function handlePointer(event: MouseEvent): void {
+      const target = event.target as Node
+      if (vaultMenuRef.current?.contains(target)) return
+      if (vaultMenuListRef.current?.contains(target)) return
+      setVaultMenuOpen(false)
+    }
+    function handleKey(event: KeyboardEvent): void {
+      if (event.key === 'Escape') {
+        setVaultMenuOpen(false)
+        vaultButtonRef.current?.focus()
+      }
+    }
+    document.addEventListener('mousedown', handlePointer)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      window.clearTimeout(focusTimer)
+      document.removeEventListener('mousedown', handlePointer)
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [vaultMenuOpen])
 
   useEffect(() => {
     if (!calendarOpen) return
@@ -254,8 +292,8 @@ Pour utiliser la timeline :
 Détection automatique : liens (direct), tags partagés, mentions texte.
 Interactions : filtre, mode compact, légende (isoler ligne), clavier, zoom/pan (>50 chapitres), export PNG/PDF.
 
-## Vault switcher
-Le bouton \`FolderOpen\` (barre latérale) affiche les 5 derniers dossiers (\`localStorage\` : \`recentVaults\`).
+## Changer de dossier
+Le bouton \`FolderOpen\` (en-tête de la barre latérale) ouvre la liste des 5 derniers dossiers utilisés. Le dossier courant est marqué « actuel ». « Choisir un autre dossier… » ouvre le sélecteur système. Navigation clavier : Tab puis Entrée, Échap pour fermer.
 
 ## Mention à lier
 Dans le texte, une mention du nom (ex. \`Alice traverse\`) devient un point gris (\`is-mention\`). Remplacez par \`[[Alice]]\` pour un lien direct (point accent, ouvre la note).`
@@ -273,26 +311,68 @@ Dans le texte, une mention du nom (ex. \`Alice traverse\`) devient un point gris
               {vault.name}
             </span>
           </span>
-          <button
-            type="button"
-            className="icon-btn brand-switch"
-            title="Changer de dossier"
-            onClick={() => {
-              try {
-                const recent = JSON.parse(window.localStorage.getItem('recentVaults') || '[]') as string[]
-                const label = recent.length ? `Dossiers récents (${recent.length})` : 'Changer de dossier'
-                const choice = prompt(label + '\n' + (recent.length ? recent.map((p, i) => `${i + 1}. ${p}`).join('\n') + '\nEntrez le numéro ou le chemin complet :' : 'Entrez le chemin du nouveau dossier :'))
-                if (!choice) return
-                const index = parseInt(choice.trim(), 10)
-                const selectedPath = !isNaN(index) && index > 0 && index <= recent.length ? recent[index - 1] : choice.trim()
-                if (selectedPath) void onSwitchVault()
-              } catch {
-                void onSwitchVault()
-              }
-            }}
-          >
-            <FolderOpen size={15} />
-          </button>
+          <div className="brand-vault-switch" ref={vaultMenuRef}>
+            <button
+              ref={vaultButtonRef}
+              type="button"
+              className="icon-btn"
+              title="Changer de dossier"
+              aria-label="Changer de dossier"
+              aria-haspopup="menu"
+              aria-expanded={vaultMenuOpen}
+              onClick={() => setVaultMenuOpen((open) => !open)}
+            >
+              <FolderOpen size={15} />
+            </button>
+            {vaultMenuOpen && (
+              <div
+                className="vault-menu"
+                role="menu"
+                aria-label="Choisir un dossier de notes"
+                ref={vaultMenuListRef}
+              >
+                <p className="vault-menu-head">Dossiers récents</p>
+                {recentVaults.length ? (
+                  recentVaults.map((recentPath) => {
+                    const current = recentPath === vault.path
+                    return (
+                      <button
+                        key={recentPath}
+                        type="button"
+                        role="menuitem"
+                        className={`vault-menu-item${current ? ' is-current' : ''}`}
+                        title={recentPath}
+                        onClick={() => {
+                          setVaultMenuOpen(false)
+                          if (!current) onSwitchVault(recentPath)
+                        }}
+                      >
+                        <span className="vault-menu-row">
+                          <span className="vault-menu-name">{vaultBaseName(recentPath)}</span>
+                          {current ? <span className="vault-menu-badge">actuel</span> : null}
+                        </span>
+                        <span className="vault-menu-path">{recentPath}</span>
+                      </button>
+                    )
+                  })
+                ) : (
+                  <p className="vault-menu-empty">Aucun dossier récent.</p>
+                )}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="vault-menu-item vault-menu-browse"
+                  onClick={() => {
+                    setVaultMenuOpen(false)
+                    onSwitchVault()
+                  }}
+                >
+                  <FolderOpen size={13} />
+                  <span>Choisir un autre dossier…</span>
+                </button>
+              </div>
+            )}
+          </div>
           <button
             type="button"
             className="icon-btn brand-switch"
@@ -431,7 +511,17 @@ Dans le texte, une mention du nom (ex. \`Alice traverse\`) devient un point gris
                   dragOver === space.name ? 'is-drop' : ''
                 }`}
                 key={space.name}
+                role="button"
+                tabIndex={0}
+                aria-current={activeSpace === space.name ? 'true' : undefined}
                 onClick={() => onSelectSpace(space.name)}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onSelectSpace(space.name)
+                  }
+                }}
                 {...dropProps(space.name)}
                 title={`${space.name} (${space.count} note${space.count > 1 ? 's' : ''})`}
               >
@@ -538,6 +628,7 @@ Dans le texte, une mention du nom (ex. \`Alice traverse\`) devient un point gris
                   onClick={() => onTagFilter(tag.name)}
                   onDoubleClick={() => startTagRename(tag.name)}
                   onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault()
                       onTagFilter(tag.name)

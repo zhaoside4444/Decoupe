@@ -222,7 +222,14 @@ async function applyVault(root: string): Promise<VaultInfo> {
   return vaultInfo(root)
 }
 
-async function chooseVault(): Promise<VaultInfo | null> {
+async function chooseVault(existingPath?: string): Promise<VaultInfo | null> {
+  if (existingPath) {
+    const resolved = path.resolve(existingPath)
+    if (!existsSync(resolved)) throw new Error(`Dossier introuvable : ${resolved}`)
+    const stats = await fs.stat(resolved).catch(() => null)
+    if (!stats?.isDirectory()) throw new Error(`Ce chemin n'est pas un dossier : ${resolved}`)
+    return applyVault(resolved)
+  }
   const result = await dialog.showOpenDialog({
     title: 'Choisir le dossier des notes',
     buttonLabel: 'Utiliser ce dossier',
@@ -245,7 +252,7 @@ function registerIpc(): void {
   ipcMain.handle(IPC.getConfig, () => ({ vault: currentVault() }))
 
   ipcMain.handle(IPC.createVault, () => chooseVault())
-  ipcMain.handle(IPC.openVault, () => chooseVault())
+  ipcMain.handle(IPC.openVault, (_event, root?: string) => chooseVault(root))
 
   ipcMain.handle(IPC.revealVault, async () => {
     const root = requireVault()
