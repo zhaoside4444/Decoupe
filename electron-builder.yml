@@ -1,0 +1,31 @@
+appId: com.decoupe.app
+productName: Decoupe
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**
+  - build/icon.png
+  - package.json
+asar: true
+disableAsarIntegrity: true
+win:
+  icon: build/icon.ico
+  signAndEditExecutable: false
+  target:
+    - zip
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  installerIcon: build/icon.ico
+mac:
+  icon: build/icon.png
+  target:
+    - dmg
+  category: public.app-category.productivity
+linux:
+  icon: build/icon.png
+  target:
+    - AppImage
+  category: Utility
