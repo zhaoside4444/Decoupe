@@ -93,7 +93,7 @@ npm test
 npm run build
 ```
 
-La suite couvre la logique partagée (texte, tags, recherche, liens, timeline, aide, vaults), les composants critiques (barre latérale, timeline, palette de commandes) via jsdom et React Testing Library, ainsi que des scénarios d'intégration sur un vault temporaire.
+La suite couvre la logique partagée (texte, tags, recherche, liens, timeline, aide, vaults), les composants critiques (barre latérale, timeline, palette de commandes) et les dialogues (corbeille, sauvegardes, réglages, export PDF, modifications externes) via jsdom et React Testing Library, ainsi que des scénarios d'intégration sur un vault temporaire.
 
 ## Contribuer
 

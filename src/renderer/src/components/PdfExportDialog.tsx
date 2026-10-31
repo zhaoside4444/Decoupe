@@ -61,11 +61,12 @@ export function PdfExportDialog({
     [currentPath, currentBase, tags, currentLinks, notes]
   )
 
-  useEffect(() => {
-    if (relatedMode === 'full' && selectedPaths.size === 0) {
-      setSelectedPaths(new Set(relatedNotes.map((r) => r.path)))
-    }
-  }, [relatedMode, relatedNotes, selectedPaths.size])
+  // Sélectionne toutes les notes liées uniquement au passage en mode « annexes complètes » :
+  // un effet dépendant de la sélection re-cocherait la dernière note décochée.
+  function selectFullMode(): void {
+    setRelatedMode('full')
+    setSelectedPaths(new Set(relatedNotes.map((r) => r.path)))
+  }
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null
@@ -163,7 +164,7 @@ export function PdfExportDialog({
                   type="radio"
                   name="related-mode"
                   checked={relatedMode === 'full'}
-                  onChange={() => setRelatedMode('full')}
+                  onChange={selectFullMode}
                   disabled={!relatedNotes.length}
                 />
                 <span>Annexes complètes</span>
