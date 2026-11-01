@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { createRef, type ComponentProps } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Sidebar } from '../src/renderer/src/components/Sidebar'
 
@@ -134,6 +134,43 @@ describe('Sidebar — espaces et tags', () => {
 
     expect(props.onTagFilter).not.toHaveBeenCalled()
     expect(props.onDeleteTag).toHaveBeenCalledWith('personnage')
+  })
+
+  it('crée un dossier depuis le bouton de la section Espaces', async () => {
+    const user = userEvent.setup()
+    const props = renderSidebar()
+
+    const add = screen.getByRole('button', { name: 'Nouveau dossier' })
+    expect(add).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(add)
+    expect(add).toHaveAttribute('aria-expanded', 'true')
+    const input = screen.getByPlaceholderText('Nom du dossier')
+    expect(input).toHaveFocus()
+
+    await user.type(input, 'Lieux{Enter}')
+
+    await waitFor(() => expect(props.onCreateSpace).toHaveBeenCalledWith('Lieux'))
+    await waitFor(() =>
+      expect(screen.queryByPlaceholderText('Nom du dossier')).not.toBeInTheDocument()
+    )
+    expect(add).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('annule la création avec Échap ou une perte de focus à vide', async () => {
+    const user = userEvent.setup()
+    renderSidebar()
+
+    await user.click(screen.getByRole('button', { name: 'Nouveau dossier' }))
+    await user.type(screen.getByPlaceholderText('Nom du dossier'), 'Brouillon')
+    await user.keyboard('{Escape}')
+    expect(screen.queryByPlaceholderText('Nom du dossier')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Nouveau dossier' }))
+    const input = screen.getByPlaceholderText('Nom du dossier')
+    expect(input).toHaveFocus()
+    fireEvent.blur(input)
+    expect(screen.queryByPlaceholderText('Nom du dossier')).not.toBeInTheDocument()
   })
 })
 

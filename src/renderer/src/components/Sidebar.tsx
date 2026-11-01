@@ -479,6 +479,16 @@ export function Sidebar({
 
         <div className="section-label">
           <span>Espaces</span>
+          <button
+            type="button"
+            className="section-add"
+            title="Créer un dossier"
+            aria-label="Nouveau dossier"
+            aria-expanded={creating}
+            onClick={() => setCreating(true)}
+          >
+            <Plus size={12} />
+          </button>
         </div>
 
         <div className="spaces">

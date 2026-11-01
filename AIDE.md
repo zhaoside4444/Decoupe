@@ -30,6 +30,10 @@ L'application détecte automatiquement :
 
 Le bouton `FolderOpen` dans l'en-tête de la barre latérale ouvre un menu listant les 5 derniers dossiers utilisés (`localStorage` : `recentVaults`). Le dossier courant porte le badge « actuel ». Choisir un autre dossier bascule immédiatement dessus ; « Choisir un autre dossier… » ouvre le sélecteur système. Le dossier est enregistré automatiquement à chaque ouverture (`applyVault`).
 
+## Créer un dossier
+
+Le bouton `Plus` à droite du libellé « Espaces » ouvre le champ « Nom du dossier ». `Entrée` crée le dossier et l'ajoute à la barre latérale ; `Échap` ou un clic hors du champ vide annule.
+
 ## Barre latérale au clavier
 
 - `Tab` parcourt les éléments ; `Entrée` ou `Espace` ouvre un dossier ou applique un filtre de tag.
