@@ -12,7 +12,7 @@ Le vault reste un simple dossier de fichiers `.md` : il est lisible dans n'impor
 - **Liens wiki** `[[Note]]` avec autocomplétion, suggestions de notes liées et panneau de liens entrants.
 - **Tags** `#tag` : édition, suggestions, recherche multi-tags, renommage et suppression globaux.
 - **Recherche** par texte, tag, date et plage de dates, avec calendrier et compteurs.
-- **Édition** : images collées, tableaux insérés sans syntaxe, extraction, scission, fusion, sélection multiple.
+- **Édition** : images collées, tableaux insérés et modifiés sans syntaxe (lignes, colonnes), extraction, scission, fusion, sélection multiple.
 - **Corbeille** pour les notes et les espaces, avec restauration et purge définitive.
 - **Sauvegardes locales** : instantanés, planification, rétention, export et restauration.
 - **Détection des modifications externes** : garde d'écriture, rechargement ou conservation locale.
@@ -93,7 +93,7 @@ npm test
 npm run build
 ```
 
-La suite couvre la logique partagée (texte, tags, recherche, liens, timeline, aide, vaults), les composants critiques (barre latérale, timeline, palette de commandes, calendrier, liste des notes, éditeur, liens entrants, capture rapide, notes liées, onboarding, notifications), les dialogues (corbeille, sauvegardes, réglages, export PDF, modifications externes) via jsdom et React Testing Library, ainsi que des scénarios d'intégration sur un vault temporaire. Elle compte 36 fichiers et 313 tests.
+La suite couvre la logique partagée (texte, tags, recherche, liens, timeline, aide, vaults), les composants critiques (barre latérale, timeline, palette de commandes, calendrier, liste des notes, éditeur, outils de tableau, liens entrants, capture rapide, notes liées, onboarding, notifications), les dialogues (corbeille, sauvegardes, réglages, export PDF, modifications externes) via jsdom et React Testing Library, ainsi que des scénarios d'intégration sur un vault temporaire. Elle compte 37 fichiers et 316 tests.
 
 ## Contribuer
 

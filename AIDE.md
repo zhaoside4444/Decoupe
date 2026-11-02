@@ -46,6 +46,12 @@ Le bouton `Plus` à droite du libellé « Espaces » ouvre le champ « Nom du do
 
 Le bouton `Table2` de la barre de mise en forme ouvre un sélecteur de taille : survolez la grille jusqu'à la taille voulue (colonnes × lignes), puis cliquez pour insérer le tableau. Aucune syntaxe Markdown n'est nécessaire.
 
+Lorsque le curseur est dans un tableau, un groupe **Tableau** apparaît dans la barre de mise en forme :
+
+- le repère `Tableau 2·3` indique la ligne et la colonne courantes ;
+- `+ Ligne` et `+ Colonne` ajoutent une ligne sous la ligne courante ou une colonne à droite de la colonne courante ;
+- `− Ligne`, `− Colonne` et `− Tableau` suppriment l'élément courant ; les deux premiers sont désactivés quand il ne resterait plus aucune ligne ou colonne.
+
 - `Tab` et `Maj+Tab` passent d'une cellule à l'autre.
 - Le tableau reste du Markdown standard (GFM) : il est lisible hors de Découpe et repris dans l'export PDF.
 

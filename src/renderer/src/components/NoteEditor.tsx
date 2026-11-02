@@ -20,7 +20,17 @@ import {
   wrapInOrderedListCommand,
   wrapInBulletListCommand
 } from '@milkdown/kit/preset/commonmark'
-import { gfm, insertTableCommand, toggleStrikethroughCommand } from '@milkdown/kit/preset/gfm'
+import {
+  addColAfterCommand,
+  addRowAfterCommand,
+  deleteSelectedCellsCommand,
+  gfm,
+  insertTableCommand,
+  selectColCommand,
+  selectRowCommand,
+  selectTableCommand,
+  toggleStrikethroughCommand
+} from '@milkdown/kit/preset/gfm'
 import { history, redoCommand, undoCommand } from '@milkdown/kit/plugin/history'
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { $prose, callCommand, replaceAll } from '@milkdown/kit/utils'
@@ -74,6 +84,7 @@ import {
   WIKI_SUGGESTION_LIMIT
 } from '@shared/wiki-suggestions'
 import { RelatedNotes } from './RelatedNotes'
+import { TableTools, type TableContext } from './TableTools'
 import '@milkdown/kit/prose/view/style/prosemirror.css'
 
 interface NoteEditorProps {
@@ -120,6 +131,7 @@ interface FormatState {
   ordered: boolean
   quote: boolean
   codeBlock: boolean
+  table: TableContext | null
 }
 
 type WikiMenuItem =
@@ -168,7 +180,8 @@ const EMPTY_FORMAT: FormatState = {
   bullet: false,
   ordered: false,
   quote: false,
-  codeBlock: false
+  codeBlock: false,
+  table: null
 }
 
 const wikiLinkPlugin = $prose(
@@ -773,13 +786,23 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
       let ordered = false
       let quote = false
       let codeBlock = false
+      let table: TableContext | null = null
       for (let depth = $from.depth; depth > 0; depth -= 1) {
-        const name = $from.node(depth).type.name
-        if (name === 'heading') heading = Number($from.node(depth).attrs.level) || 0
+        const node = $from.node(depth)
+        const name = node.type.name
+        if (name === 'heading') heading = Number(node.attrs.level) || 0
         if (name === 'bullet_list') bullet = true
         if (name === 'ordered_list') ordered = true
         if (name === 'blockquote') quote = true
         if (name === 'code_block') codeBlock = true
+        if (name === 'table' && depth < $from.depth) {
+          table = {
+            row: $from.index(depth),
+            col: $from.index(depth + 1),
+            rows: node.childCount,
+            cols: node.firstChild?.childCount ?? 0
+          }
+        }
       }
       return {
         strong: isActive('strong'),
@@ -791,7 +814,8 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
         bullet,
         ordered,
         quote,
-        codeBlock
+        codeBlock,
+        table
       }
     })
     setFormatState(next)
@@ -879,6 +903,50 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   function insertTable(rows: number, cols: number): void {
     setTableMenu(null)
     runCommand(insertTableCommand.key, { row: rows, col: cols })
+  }
+
+  function addTableRow(): void {
+    if (!formatState.table) return
+    runCommand(addRowAfterCommand.key)
+  }
+
+  function addTableColumn(): void {
+    if (!formatState.table) return
+    runCommand(addColAfterCommand.key)
+  }
+
+  function deleteTableLine(
+    key: CmdKey<{ index: number; pos?: number }>,
+    index: number
+  ): void {
+    const editor = editorRef.current
+    if (!editor) return
+    editor.action(callCommand(key, { index }))
+    editor.action(callCommand(deleteSelectedCellsCommand.key))
+    editor.action((ctx) => ctx.get(editorViewCtx).focus())
+    refreshFormatState()
+  }
+
+  function deleteTableRow(): void {
+    const table = formatState.table
+    if (!table || table.rows <= 1) return
+    deleteTableLine(selectRowCommand.key, table.row)
+  }
+
+  function deleteTableColumn(): void {
+    const table = formatState.table
+    if (!table || table.cols <= 1) return
+    deleteTableLine(selectColCommand.key, table.col)
+  }
+
+  function deleteTable(): void {
+    if (!formatState.table) return
+    const editor = editorRef.current
+    if (!editor) return
+    editor.action(callCommand(selectTableCommand.key))
+    editor.action(callCommand(deleteSelectedCellsCommand.key))
+    editor.action((ctx) => ctx.get(editorViewCtx).focus())
+    refreshFormatState()
   }
 
   function openLinkPrompt(): void {
@@ -1511,6 +1579,19 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
             <Table2 size={15} />
           </FormatButton>
         </span>
+        {formatState.table && (
+          <>
+            <span className="fmt-sep" />
+            <TableTools
+              {...formatState.table}
+              onAddRow={addTableRow}
+              onAddColumn={addTableColumn}
+              onDeleteRow={deleteTableRow}
+              onDeleteColumn={deleteTableColumn}
+              onDeleteTable={deleteTable}
+            />
+          </>
+        )}
         <span className="fmt-sep" />
         <FormatButton title="Lien" active={formatState.link !== null} onClick={openLinkPrompt}>
           <Link2 size={15} />

@@ -2040,6 +2040,57 @@ button {
   text-align: center;
 }
 
+.table-tools {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--bg-panel);
+}
+
+.table-tools-label {
+  padding: 0 4px;
+  color: var(--ink-faint);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.table-tools-btn {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.table-tools-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+
+.table-tools-btn.is-danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+
+.table-tools-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.table-tools-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .link-entry {
   display: flex;
   flex: 0 0 auto;
