@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NoteEditor, type NoteEditorHandle } from '../src/renderer/src/components/NoteEditor'
 import type { NoteSummary } from '../src/shared/types'
@@ -274,6 +274,70 @@ describe('NoteEditor — mise en forme et contenu', () => {
 
     await ref.current?.flush()
     expect(onSave).not.toHaveBeenCalled()
+  })
+
+  it('ouvre le sélecteur de tableau et annonce la taille survolée', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+
+    const trigger = screen.getByRole('button', { name: 'Insérer un tableau' })
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(trigger)
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+    const dialog = screen.getByRole('dialog', { name: 'Insérer un tableau' })
+    expect(within(dialog).getAllByRole('button')).toHaveLength(36)
+    expect(within(dialog).getByText('3 colonnes × 3 lignes')).toBeInTheDocument()
+
+    await user.hover(
+      within(dialog).getByRole('button', { name: 'Insérer un tableau de 4 colonnes et 2 lignes' })
+    )
+    expect(within(dialog).getByText('4 colonnes × 2 lignes')).toBeInTheDocument()
+
+    fireEvent.focus(
+      within(dialog).getByRole('button', { name: 'Insérer un tableau de 5 colonnes et 1 ligne' })
+    )
+    expect(within(dialog).getByText('5 colonnes × 1 ligne')).toBeInTheDocument()
+  })
+
+  it('insère la taille choisie puis referme le sélecteur', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+
+    const trigger = screen.getByRole('button', { name: 'Insérer un tableau' })
+    await user.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Insérer un tableau' })
+
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Insérer un tableau de 2 colonnes et 4 lignes' })
+    )
+
+    expect(screen.queryByRole('dialog', { name: 'Insérer un tableau' })).not.toBeInTheDocument()
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('ferme le sélecteur avec Échap et rend le focus au bouton', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+
+    const trigger = screen.getByRole('button', { name: 'Insérer un tableau' })
+    await user.click(trigger)
+    await user.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog', { name: 'Insérer un tableau' })).not.toBeInTheDocument()
+    expect(trigger).toHaveFocus()
+  })
+
+  it('ferme le sélecteur au clic extérieur', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+
+    await user.click(screen.getByRole('button', { name: 'Insérer un tableau' }))
+    expect(screen.getByRole('dialog', { name: 'Insérer un tableau' })).toBeInTheDocument()
+
+    await user.click(screen.getByText('Enregistré'))
+    expect(screen.queryByRole('dialog', { name: 'Insérer un tableau' })).not.toBeInTheDocument()
   })
 
   it('reste enregistré quand une modification externe est signalée', () => {

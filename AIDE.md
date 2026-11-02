@@ -42,6 +42,15 @@ Le bouton `Plus` à droite du libellé « Espaces » ouvre le champ « Nom du do
 
 ---
 
+## Tableaux
+
+Le bouton `Table2` de la barre de mise en forme ouvre un sélecteur de taille : survolez la grille jusqu'à la taille voulue (colonnes × lignes), puis cliquez pour insérer le tableau. Aucune syntaxe Markdown n'est nécessaire.
+
+- `Tab` et `Maj+Tab` passent d'une cellule à l'autre.
+- Le tableau reste du Markdown standard (GFM) : il est lisible hors de Découpe et repris dans l'export PDF.
+
+---
+
 ## Mention à lier
 
 Dans le texte d'une note, le logiciel détecte automatiquement les mentions du nom d'un personnage (ex. `Alice traverse la cour.`). Si une note portant ce nom existe dans le vault, la mention apparaît dans la timeline comme une **apparition par mention** (`timeline-dot.is-mention`, contour gris). Pour transformer cette mention en **lien wiki** (`[[Alice]]`), éditez la note et remplacez le nom par la syntaxe wiki. Le lien devient alors une apparition directe (`timeline-dot.is-link`, point plein accent) et ouvre la note du personnage au clic.

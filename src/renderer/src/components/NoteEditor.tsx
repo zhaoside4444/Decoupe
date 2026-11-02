@@ -20,7 +20,7 @@ import {
   wrapInOrderedListCommand,
   wrapInBulletListCommand
 } from '@milkdown/kit/preset/commonmark'
-import { gfm, toggleStrikethroughCommand } from '@milkdown/kit/preset/gfm'
+import { gfm, insertTableCommand, toggleStrikethroughCommand } from '@milkdown/kit/preset/gfm'
 import { history, redoCommand, undoCommand } from '@milkdown/kit/plugin/history'
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { $prose, callCommand, replaceAll } from '@milkdown/kit/utils'
@@ -48,6 +48,7 @@ import {
   Scissors,
   SquareCode,
   Strikethrough,
+  Table2,
   Tag,
   Trash2,
   Undo2,
@@ -137,6 +138,8 @@ interface WikiAutocompleteState {
 
 const WIKI_MENU_WIDTH = 330
 const WIKI_MENU_HEIGHT = 288
+const TABLE_PICKER_MAX = 6
+const TABLE_PICKER_WIDTH = 216
 
 function placeWikiMenu(
   coords: { top: number; bottom: number; left: number },
@@ -264,11 +267,15 @@ function readAsDataUrl(file: File): Promise<string> {
 function FormatButton({
   title,
   active = false,
+  expanded,
+  toggle = true,
   onClick,
   children
 }: {
   title: string
   active?: boolean
+  expanded?: boolean
+  toggle?: boolean
   onClick: () => void
   children: ReactNode
 }) {
@@ -278,7 +285,8 @@ function FormatButton({
       className={`fmt-btn${active ? ' is-active' : ''}`}
       title={title}
       aria-label={title}
-      aria-pressed={active}
+      aria-pressed={toggle ? active : undefined}
+      aria-expanded={expanded}
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
     >
@@ -317,6 +325,8 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   const rootRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const tableMenuRef = useRef<HTMLDivElement>(null)
+  const tableAnchorRef = useRef<HTMLSpanElement>(null)
   const notesRef = useRef(notes)
   const autocompleteRef = useRef<WikiAutocompleteState | null>(null)
   const creatingRef = useRef(false)
@@ -333,6 +343,8 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   const [bubble, setBubble] = useState<{ top: number; left: number } | null>(null)
   const [formatState, setFormatState] = useState<FormatState>(EMPTY_FORMAT)
   const [linkPrompt, setLinkPrompt] = useState<{ value: string; error: string | null } | null>(null)
+  const [tableMenu, setTableMenu] = useState<{ top: number; left: number } | null>(null)
+  const [tableSize, setTableSize] = useState({ rows: 3, cols: 3 })
   const [tags, setTags] = useState<string[]>(() =>
     tagsFromFrontmatter(initial.current.frontmatter)
   )
@@ -378,6 +390,32 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
       restoreFocusIfLost(previous)
     }
   }, [mentionsOpen])
+
+  useEffect(() => {
+    if (!tableMenu) return
+    const onPointerDown = (event: PointerEvent): void => {
+      const target = event.target as Node
+      if (tableMenuRef.current?.contains(target) || tableAnchorRef.current?.contains(target)) return
+      setTableMenu(null)
+    }
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        setTableMenu(null)
+        tableAnchorRef.current?.querySelector('button')?.focus()
+      }
+    }
+    const close = (): void => setTableMenu(null)
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [tableMenu])
 
   const callbacks = useRef({ onSave, onExtract, onSplit, onOpenLink, onCreateLink, onError })
   useEffect(() => {
@@ -821,9 +859,32 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
     runCommand(formatState.codeBlock ? turnIntoTextCommand.key : createCodeBlockCommand.key)
   }
 
+  function toggleTableMenu(): void {
+    if (tableMenu) {
+      setTableMenu(null)
+      return
+    }
+    const rect = tableAnchorRef.current?.getBoundingClientRect()
+    if (!rect) return
+    setLinkPrompt(null)
+    setBubble(null)
+    hideWikiMenu()
+    setTableSize({ rows: 3, cols: 3 })
+    setTableMenu({
+      top: Math.min(rect.bottom + 6, window.innerHeight - 228),
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - TABLE_PICKER_WIDTH - 8))
+    })
+  }
+
+  function insertTable(rows: number, cols: number): void {
+    setTableMenu(null)
+    runCommand(insertTableCommand.key, { row: rows, col: cols })
+  }
+
   function openLinkPrompt(): void {
     setLinkPrompt({ value: formatState.link ?? '', error: null })
     setBubble(null)
+    setTableMenu(null)
     hideWikiMenu()
   }
 
@@ -1439,6 +1500,17 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
         <FormatButton title="Bloc de code" active={formatState.codeBlock} onClick={toggleCodeBlock}>
           <SquareCode size={15} />
         </FormatButton>
+        <span className="table-picker" ref={tableAnchorRef}>
+          <FormatButton
+            title="Insérer un tableau"
+            active={tableMenu !== null}
+            expanded={tableMenu !== null}
+            toggle={false}
+            onClick={toggleTableMenu}
+          >
+            <Table2 size={15} />
+          </FormatButton>
+        </span>
         <span className="fmt-sep" />
         <FormatButton title="Lien" active={formatState.link !== null} onClick={openLinkPrompt}>
           <Link2 size={15} />
@@ -1484,6 +1556,45 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
           <Redo2 size={15} />
         </FormatButton>
       </div>
+
+      {tableMenu && (
+        <div
+          className="table-menu"
+          ref={tableMenuRef}
+          role="dialog"
+          aria-label="Insérer un tableau"
+          style={{ top: tableMenu.top, left: tableMenu.left }}
+        >
+          <p className="table-menu-title">Insérer un tableau</p>
+          <div className="table-grid" role="group" aria-label="Taille du tableau">
+            {Array.from({ length: TABLE_PICKER_MAX }, (_, rowIndex) => (
+              <div className="table-grid-row" key={rowIndex}>
+                {Array.from({ length: TABLE_PICKER_MAX }, (_, colIndex) => {
+                  const rows = rowIndex + 1
+                  const cols = colIndex + 1
+                  const selected = rows <= tableSize.rows && cols <= tableSize.cols
+                  return (
+                    <button
+                      key={colIndex}
+                      type="button"
+                      className={`table-grid-cell${selected ? ' is-selected' : ''}`}
+                      aria-label={`Insérer un tableau de ${cols} colonne${cols > 1 ? 's' : ''} et ${rows} ligne${rows > 1 ? 's' : ''}`}
+                      onMouseEnter={() => setTableSize({ rows, cols })}
+                      onFocus={() => setTableSize({ rows, cols })}
+                      onClick={() => insertTable(rows, cols)}
+                    />
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+          <p className="table-menu-size" aria-live="polite">
+            {`${tableSize.cols} colonne${tableSize.cols > 1 ? 's' : ''} × ${tableSize.rows} ligne${
+              tableSize.rows > 1 ? 's' : ''
+            }`}
+          </p>
+        </div>
+      )}
 
       <div className="editor-scroll" ref={scrollRef}>
         <div className="editor-page">

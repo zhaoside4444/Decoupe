@@ -1977,6 +1977,69 @@ button {
   flex: 1;
 }
 
+.table-picker {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.table-menu {
+  position: fixed;
+  z-index: 46;
+  width: 216px;
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--bg-elev);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+}
+
+.table-menu-title {
+  margin: 0 0 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.table-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-grid-row {
+  display: flex;
+  gap: 4px;
+}
+
+.table-grid-cell {
+  flex: 1;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--bg-panel);
+  cursor: pointer;
+}
+
+.table-grid-cell:hover,
+.table-grid-cell.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.table-grid-cell:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.table-menu-size {
+  margin: 7px 0 0;
+  font-size: 11px;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
 .link-entry {
   display: flex;
   flex: 0 0 auto;
