@@ -5,6 +5,20 @@ export interface TableContext {
   cols: number
 }
 
+export function canDeleteTableRow(table: TableContext): boolean {
+  // La première ligne est l'en-tête GFM et le schéma exige au moins une ligne sous elle.
+  return table.row > 0 && table.rows > 2
+}
+
+export function canDeleteTableColumn(table: TableContext): boolean {
+  return table.cols > 1
+}
+
+function rowGuardMessage(table: TableContext): string {
+  if (table.row === 0) return 'La ligne d’en-tête ne peut pas être supprimée'
+  return 'Le tableau doit garder une ligne sous l’en-tête'
+}
+
 interface TableToolsProps extends TableContext {
   onAddRow: () => void
   onAddColumn: () => void
@@ -24,17 +38,21 @@ export function TableTools({
   onDeleteColumn,
   onDeleteTable
 }: TableToolsProps) {
-  const singleRow = rows <= 1
-  const singleCol = cols <= 1
+  const table = { row, col, rows, cols }
+  const deleteRow = canDeleteTableRow(table)
+  const deleteColumn = canDeleteTableColumn(table)
 
   return (
     <span
       className="table-tools"
       role="group"
-      aria-label={`Tableau — ligne ${row + 1} sur ${rows}, colonne ${col + 1} sur ${cols}`}
+      aria-label={`Tableau ${cols} colonnes × ${rows} lignes — ligne ${row + 1}, colonne ${col + 1}`}
     >
       <span className="table-tools-label" aria-hidden="true">
-        Tableau {row + 1}·{col + 1}
+        Tableau {cols}×{rows}
+        <span className="table-tools-position">
+          L{row + 1}·C{col + 1}
+        </span>
       </span>
       <button
         type="button"
@@ -60,12 +78,10 @@ export function TableTools({
         type="button"
         className="table-tools-btn is-danger"
         title={
-          singleRow
-            ? 'Le tableau doit garder au moins une ligne'
-            : `Supprimer la ligne ${row + 1}`
+          deleteRow ? `Supprimer la ligne ${row + 1}` : rowGuardMessage(table)
         }
         aria-label={`Supprimer la ligne ${row + 1}`}
-        disabled={singleRow}
+        disabled={!deleteRow}
         onMouseDown={(event) => event.preventDefault()}
         onClick={onDeleteRow}
       >
@@ -75,12 +91,12 @@ export function TableTools({
         type="button"
         className="table-tools-btn is-danger"
         title={
-          singleCol
-            ? 'Le tableau doit garder au moins une colonne'
-            : `Supprimer la colonne ${col + 1}`
+          deleteColumn
+            ? `Supprimer la colonne ${col + 1}`
+            : 'Le tableau doit garder au moins une colonne'
         }
         aria-label={`Supprimer la colonne ${col + 1}`}
-        disabled={singleCol}
+        disabled={!deleteColumn}
         onMouseDown={(event) => event.preventDefault()}
         onClick={onDeleteColumn}
       >

@@ -26,9 +26,12 @@ describe('TableTools', () => {
     renderTools()
 
     expect(
-      screen.getByRole('group', { name: 'Tableau — ligne 2 sur 3, colonne 3 sur 4' })
+      screen.getByRole('group', {
+        name: 'Tableau 4 colonnes × 3 lignes — ligne 2, colonne 3'
+      })
     ).toBeInTheDocument()
-    expect(screen.getByText('Tableau 2·3')).toBeInTheDocument()
+    expect(screen.getByText('Tableau 4×3')).toBeInTheDocument()
+    expect(screen.getByText('L2·C3')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ajouter une ligne' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Ajouter une colonne' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Supprimer la ligne 2' })).toBeEnabled()
@@ -61,13 +64,13 @@ describe('TableTools', () => {
 
   it('protège la dernière ligne et la dernière colonne', async () => {
     const user = userEvent.setup()
-    const props = renderTools({ row: 0, col: 0, rows: 1, cols: 1 })
+    const props = renderTools({ row: 1, col: 0, rows: 2, cols: 1 })
 
-    const deleteRow = screen.getByRole('button', { name: 'Supprimer la ligne 1' })
+    const deleteRow = screen.getByRole('button', { name: 'Supprimer la ligne 2' })
     const deleteColumn = screen.getByRole('button', { name: 'Supprimer la colonne 1' })
 
     expect(deleteRow).toBeDisabled()
-    expect(deleteRow).toHaveAttribute('title', 'Le tableau doit garder au moins une ligne')
+    expect(deleteRow).toHaveAttribute('title', 'Le tableau doit garder une ligne sous l’en-tête')
     expect(deleteColumn).toBeDisabled()
     expect(deleteColumn).toHaveAttribute('title', 'Le tableau doit garder au moins une colonne')
     expect(screen.getByRole('button', { name: 'Supprimer le tableau' })).toBeEnabled()
@@ -76,5 +79,13 @@ describe('TableTools', () => {
     await user.click(deleteColumn)
     expect(props.onDeleteRow).not.toHaveBeenCalled()
     expect(props.onDeleteColumn).not.toHaveBeenCalled()
+  })
+
+  it("empêche la suppression de la ligne d'en-tête", () => {
+    renderTools({ row: 0, col: 0, rows: 3, cols: 2 })
+
+    const deleteRow = screen.getByRole('button', { name: 'Supprimer la ligne 1' })
+    expect(deleteRow).toBeDisabled()
+    expect(deleteRow).toHaveAttribute('title', 'La ligne d’en-tête ne peut pas être supprimée')
   })
 })

@@ -84,7 +84,12 @@ import {
   WIKI_SUGGESTION_LIMIT
 } from '@shared/wiki-suggestions'
 import { RelatedNotes } from './RelatedNotes'
-import { TableTools, type TableContext } from './TableTools'
+import {
+  TableTools,
+  canDeleteTableColumn,
+  canDeleteTableRow,
+  type TableContext
+} from './TableTools'
 import '@milkdown/kit/prose/view/style/prosemirror.css'
 
 interface NoteEditorProps {
@@ -929,13 +934,13 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
 
   function deleteTableRow(): void {
     const table = formatState.table
-    if (!table || table.rows <= 1) return
+    if (!table || !canDeleteTableRow(table)) return
     deleteTableLine(selectRowCommand.key, table.row)
   }
 
   function deleteTableColumn(): void {
     const table = formatState.table
-    if (!table || table.cols <= 1) return
+    if (!table || !canDeleteTableColumn(table)) return
     deleteTableLine(selectColCommand.key, table.col)
   }
 

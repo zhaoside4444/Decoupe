@@ -2058,6 +2058,12 @@ button {
   white-space: nowrap;
 }
 
+.table-tools-position {
+  margin-left: 5px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .table-tools-btn {
   flex: 0 0 auto;
   padding: 3px 6px;

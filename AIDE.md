@@ -48,12 +48,12 @@ Le bouton `Table2` de la barre de mise en forme ouvre un sélecteur de taille : 
 
 Lorsque le curseur est dans un tableau, un groupe **Tableau** apparaît dans la barre de mise en forme :
 
-- le repère `Tableau 2·3` indique la ligne et la colonne courantes ;
+- le repère `Tableau 4×3` indique la taille du tableau (colonnes × lignes) et `L2·C3` la position courante ;
 - `+ Ligne` et `+ Colonne` ajoutent une ligne sous la ligne courante ou une colonne à droite de la colonne courante ;
-- `− Ligne`, `− Colonne` et `− Tableau` suppriment l'élément courant ; les deux premiers sont désactivés quand il ne resterait plus aucune ligne ou colonne.
+- `− Ligne`, `− Colonne` et `− Tableau` suppriment l'élément courant. `− Ligne` est désactivé sur la ligne d'en-tête (la première, en gras) et quand il ne resterait plus de ligne de contenu ; `− Colonne` est désactivé quand il ne resterait plus qu'une colonne.
 
 - `Tab` et `Maj+Tab` passent d'une cellule à l'autre.
-- Le tableau reste du Markdown standard (GFM) : il est lisible hors de Découpe et repris dans l'export PDF.
+- Le tableau reste du Markdown standard (GFM) : il est lisible hors de Découpe et repris dans l'export PDF. La première ligne sert toujours d'en-tête.
 
 ---
 
