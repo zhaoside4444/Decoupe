@@ -81,11 +81,15 @@ describe('TableTools', () => {
     expect(props.onDeleteColumn).not.toHaveBeenCalled()
   })
 
-  it("empêche la suppression de la ligne d'en-tête", () => {
-    renderTools({ row: 0, col: 0, rows: 3, cols: 2 })
+  it('autorise la suppression de l’en-tête quand une ligne peut être promue', async () => {
+    const user = userEvent.setup()
+    const props = renderTools({ row: 0, col: 0, rows: 3, cols: 2 })
 
     const deleteRow = screen.getByRole('button', { name: 'Supprimer la ligne 1' })
-    expect(deleteRow).toBeDisabled()
-    expect(deleteRow).toHaveAttribute('title', 'La ligne d’en-tête ne peut pas être supprimée')
+    expect(deleteRow).toBeEnabled()
+    expect(deleteRow).toHaveAttribute('title', 'Supprimer la ligne 1')
+
+    await user.click(deleteRow)
+    expect(props.onDeleteRow).toHaveBeenCalledTimes(1)
   })
 })

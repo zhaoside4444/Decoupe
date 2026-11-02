@@ -6,17 +6,12 @@ export interface TableContext {
 }
 
 export function canDeleteTableRow(table: TableContext): boolean {
-  // La première ligne est l'en-tête GFM et le schéma exige au moins une ligne sous elle.
-  return table.row > 0 && table.rows > 2
+  // Le schéma GFM exige un en-tête suivi d'au moins une ligne de contenu.
+  return table.rows > 2
 }
 
 export function canDeleteTableColumn(table: TableContext): boolean {
   return table.cols > 1
-}
-
-function rowGuardMessage(table: TableContext): string {
-  if (table.row === 0) return 'La ligne d’en-tête ne peut pas être supprimée'
-  return 'Le tableau doit garder une ligne sous l’en-tête'
 }
 
 interface TableToolsProps extends TableContext {
@@ -78,7 +73,9 @@ export function TableTools({
         type="button"
         className="table-tools-btn is-danger"
         title={
-          deleteRow ? `Supprimer la ligne ${row + 1}` : rowGuardMessage(table)
+          deleteRow
+            ? `Supprimer la ligne ${row + 1}`
+            : 'Le tableau doit garder une ligne sous l’en-tête'
         }
         aria-label={`Supprimer la ligne ${row + 1}`}
         disabled={!deleteRow}

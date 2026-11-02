@@ -90,6 +90,7 @@ import {
   canDeleteTableRow,
   type TableContext
 } from './TableTools'
+import { promoteTableHeader } from '../table-edit'
 import '@milkdown/kit/prose/view/style/prosemirror.css'
 
 interface NoteEditorProps {
@@ -934,7 +935,14 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
 
   function deleteTableRow(): void {
     const table = formatState.table
-    if (!table || !canDeleteTableRow(table)) return
+    const editor = editorRef.current
+    if (!table || !editor || !canDeleteTableRow(table)) return
+    if (table.row === 0) {
+      editor.action((ctx) => promoteTableHeader(ctx.get(editorViewCtx)))
+      editor.action((ctx) => ctx.get(editorViewCtx).focus())
+      refreshFormatState()
+      return
+    }
     deleteTableLine(selectRowCommand.key, table.row)
   }
 

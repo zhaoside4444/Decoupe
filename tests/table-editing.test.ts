@@ -13,6 +13,7 @@ import {
 import { callCommand } from '@milkdown/kit/utils'
 import { TextSelection } from '@milkdown/kit/prose/state'
 import type { EditorView } from '@milkdown/kit/prose/view'
+import { promoteTableHeader } from '../src/renderer/src/table-edit'
 
 const tableMarkdown = '| A | B | C |\n| - | - | - |\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |'
 
@@ -112,5 +113,30 @@ describe('édition réelle des tableaux Milkdown', () => {
       cols: 3,
       firstRow: 'table_header_row'
     })
+  })
+
+  it('supprime la ligne d’en-tête en promouvant la ligne suivante', async () => {
+    const { view } = await makeEditor(
+      '| A | B | C |\n| - | - | - |\n| 1 | 2 | 3 |\n| 4 | 5 | 6 |'
+    )
+
+    selectCell(view, 0, 0)
+    expect(promoteTableHeader(view)).toBe(true)
+    view.state.doc.check()
+
+    const info = tableInfo(view)
+    expect(info).toMatchObject({ rows: 2, firstRow: 'table_header_row' })
+    expect(view.state.doc.firstChild?.firstChild?.firstChild?.textContent).toBe('1')
+  })
+
+  it('refuse de supprimer l’en-tête quand il ne resterait aucune ligne de contenu', async () => {
+    const { view } = await makeEditor('| A | B |\n| - | - |\n| 1 | 2 |')
+
+    selectCell(view, 0, 0)
+    expect(promoteTableHeader(view)).toBe(false)
+
+    const info = tableInfo(view)
+    expect(info).toMatchObject({ rows: 2, firstRow: 'table_header_row' })
+    expect(view.state.doc.firstChild?.firstChild?.firstChild?.textContent).toBe('A')
   })
 })
