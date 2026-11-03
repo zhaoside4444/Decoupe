@@ -1,5 +1,21 @@
 # Aide — Découpe
 
+## Notes, espaces et Boîte d'entrée
+
+Découpe ne range pas les notes dans une base de données : chaque note reste un fichier `.md` dans le dossier `Notes/` du vault. Un sous-dossier de `Notes/` devient un **espace**.
+
+- **Boîte d'entrée** : notes placées directement dans `Notes/`, sans sous-dossier. Elle n'existe pas comme dossier sur le disque.
+- **Espaces** : sous-dossiers réels de `Notes/`, par exemple `Personnages` ou `Chapitres`.
+- **Toutes les notes** : vue transversale qui affiche les notes de tous les espaces.
+
+Cliquer sur « Boîte d'entrée » filtre la liste sur les notes non classées ; le compteur à droite indique leur nombre. « Toutes les notes » affiche l'ensemble du vault.
+
+La Boîte d'entrée sert de point d'arrivée par défaut. La capture rapide (`Ctrl + Alt + N`) y crée ses notes, tout comme une nouvelle note créée depuis « Boîte d'entrée » ou « Toutes les notes ». Pour ranger une note, glissez-la sur un espace dans la barre latérale. Pour l'en sortir, glissez-la sur « Boîte d'entrée » ou choisissez cette destination lors d'un déplacement.
+
+Quand une note n'a pas d'espace, l'interface, l'export PDF, la corbeille et les liens entrants affichent « Boîte d'entrée » à la place d'un libellé vide. L'espace ouvert au lancement se choisit dans les Réglages.
+
+---
+
 ## Timeline narrative (écriture de livres)
 
 Pour utiliser la timeline, vos notes doivent suivre cette convention :
