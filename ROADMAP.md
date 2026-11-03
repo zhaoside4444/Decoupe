@@ -1,6 +1,6 @@
 ﻿# Roadmap Decoupe
 
-> État au 30 octobre 2026 — version 0.1.0
+> État au 3 novembre 2026 — version 0.1.0
 
 ## Principes
 
@@ -15,6 +15,7 @@
 - Date de création persistée dans le frontmatter, avec repli sur `birthtime` pour les anciennes notes.
 - Recherche par date et calendrier avec compteurs, dates sans notes désactivées et filtre.
 - Recherche conservée à l’ouverture d’une note.
+- Recherche dans la note ouverte : `Ctrl+F`, compteur, occurrence suivante/précédente, surlignage, insensible à la casse et aux accents.
 - Images collées, wiki-liens, extraction, scission, fusion, corbeille avec annulation.
 - Corbeille visible : notes et dossiers, restauration, purge définitive et confirmation.
 - Sauvegardes locales : instantanés, automatisation configurable, rétention, export et restauration.
@@ -93,8 +94,9 @@
 - [x] Surligner les correspondances.
 - [x] Classer les résultats : titre, tags, puis contenu.
 - [x] Afficher le nombre de correspondances.
+- [x] Rechercher dans la note ouverte (`Ctrl+F`) avec navigation entre les occurrences.
 
-**Effort : M** — Livré le 24 octobre 2026 : extraits contextualisés autour du terme, surlignage des correspondances, classement titre/tags/contenu et compteur de correspondances par note.
+**Effort : M** — Livré le 24 octobre 2026 : extraits contextualisés autour du terme, surlignage des correspondances, classement titre/tags/contenu et compteur de correspondances par note. **Complété le 3 novembre 2026** : recherche dans la note ouverte (`Ctrl+F` ou bouton loupe), compteur `n / total`, `Entrée`/`Maj+Entrée` et flèches pour parcourir les occurrences, surlignage de toutes les occurrences et de l'occurrence courante, fermeture par `Échap`, insensible à la casse et aux accents, sans modifier le Markdown ; décorations ProseMirror et 11 tests dédiés (40 fichiers, 339 tests).
 
 ### 9. Filtres lisibles
 - [x] Afficher les filtres actifs sous forme de puces.
@@ -177,7 +179,7 @@
 - [x] Tests de composants React avec jsdom et React Testing Library (Sidebar, NarrativeTimeline, palette de commandes, dialogues, calendrier, liste, éditeur, liens entrants, capture rapide, notes liées, onboarding, notifications).
 - [x] Aucun test CDP.
 
-**Effort : M** — Livré le 25 octobre 2026 : tests unitaires de la logique pure (nav, sort, settings, mentions, text, wiki-suggestions, related, markdown-html, search, backlinks, timeline, help, vaults). **Complété le 30 octobre 2026** : tests de composants en jsdom (Sidebar, NarrativeTimeline, palette de commandes), soit 22 fichiers et 208 tests. **Complété le 31 octobre 2026** : dialogues (corbeille, sauvegardes, réglages, export PDF, modifications externes), soit 27 fichiers et 240 tests ; au passage, décocher la dernière note liée de l'export PDF ne la recoche plus automatiquement. **Complété le 1er novembre 2026** : calendrier, liste des notes et éditeur (en-tête, tags, mentions, notes liées, mise en forme, référence impérative), soit 30 fichiers et 278 tests ; l'éditeur est testé avec Milkdown neutralisé pour couvrir l'interface autour du moteur. **Complété le même jour** : liens entrants, capture rapide, onboarding, notes liées, éditeur vide et notifications, soit 36 fichiers et 307 tests. **Corrigé le même jour** : le bouton « Nouveau dossier » de la section Espaces avait disparu ; il est rétabli avec un test dédié (309 tests). **Ajouté le 2 novembre 2026** : sélecteur de tableau dans la barre de mise en forme (grille 6 × 6, taille annoncée, fermeture par Échap ou clic extérieur), soit 313 tests. **Complété le même jour** : groupe contextuel « Tableau » pour ajouter ou supprimer une ligne, une colonne ou le tableau ; la suppression de l'en-tête promeut la ligne suivante pour conserver un tableau GFM valide, et l'action est protégée quand il ne resterait qu'une ligne. Des tests d'intégration exécutent les commandes Milkdown réelles (suppression de ligne, promotion de l'en-tête, suppression de colonne, ajouts et validité du document), soit 38 fichiers et 321 tests. **Complété le 3 novembre 2026** : un paragraphe vide encadre automatiquement un tableau placé en début ou en fin de note, ce qui permet d'y écrire du texte avant et après ; le repère `<br />` du sérialiseur est retiré à l'enregistrement pour conserver un Markdown propre, soit 39 fichiers et 328 tests.
+**Effort : M** — Livré le 25 octobre 2026 : tests unitaires de la logique pure (nav, sort, settings, mentions, text, wiki-suggestions, related, markdown-html, search, backlinks, timeline, help, vaults). **Complété le 30 octobre 2026** : tests de composants en jsdom (Sidebar, NarrativeTimeline, palette de commandes), soit 22 fichiers et 208 tests. **Complété le 31 octobre 2026** : dialogues (corbeille, sauvegardes, réglages, export PDF, modifications externes), soit 27 fichiers et 240 tests ; au passage, décocher la dernière note liée de l'export PDF ne la recoche plus automatiquement. **Complété le 1er novembre 2026** : calendrier, liste des notes et éditeur (en-tête, tags, mentions, notes liées, mise en forme, référence impérative), soit 30 fichiers et 278 tests ; l'éditeur est testé avec Milkdown neutralisé pour couvrir l'interface autour du moteur. **Complété le même jour** : liens entrants, capture rapide, onboarding, notes liées, éditeur vide et notifications, soit 36 fichiers et 307 tests. **Corrigé le même jour** : le bouton « Nouveau dossier » de la section Espaces avait disparu ; il est rétabli avec un test dédié (309 tests). **Ajouté le 2 novembre 2026** : sélecteur de tableau dans la barre de mise en forme (grille 6 × 6, taille annoncée, fermeture par Échap ou clic extérieur), soit 313 tests. **Complété le même jour** : groupe contextuel « Tableau » pour ajouter ou supprimer une ligne, une colonne ou le tableau ; la suppression de l'en-tête promeut la ligne suivante pour conserver un tableau GFM valide, et l'action est protégée quand il ne resterait qu'une ligne. Des tests d'intégration exécutent les commandes Milkdown réelles (suppression de ligne, promotion de l'en-tête, suppression de colonne, ajouts et validité du document), soit 38 fichiers et 321 tests. **Complété le 3 novembre 2026** : un paragraphe vide encadre automatiquement un tableau placé en début ou en fin de note, ce qui permet d'y écrire du texte avant et après ; le repère `<br />` du sérialiseur est retiré à l'enregistrement pour conserver un Markdown propre, soit 39 fichiers et 328 tests. **Complété le même jour** : recherche dans la note ouverte (module `note-search`, décorations ProseMirror, barre `Ctrl+F`, surlignage et navigation entre occurrences), soit 40 fichiers et 339 tests.
 
 ### 18. Tests d'intégration
 - [x] Scénarios complets : création, tags, dates, liens, corbeille (tests/integration.test.ts).

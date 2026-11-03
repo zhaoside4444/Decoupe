@@ -64,8 +64,23 @@ Dans le texte d'une note, le logiciel détecte automatiquement les mentions du n
 
 ---
 
+## Rechercher dans la note
+
+`Ctrl + F` (ou le bouton loupe de la barre de mise en forme) ouvre une barre de recherche dans la note ouverte.
+
+- Saisissez un mot ou une expression : toutes les occurrences sont surlignées, l'occurrence courante d'une couleur plus marquée.
+- Le compteur indique la position et le total (`3 / 12`) ; « Aucun résultat » s'affiche si le texte est absent.
+- `Entrée` passe à l'occurrence suivante, `Maj + Entrée` à la précédente ; les flèches de la barre font la même chose.
+- `Échap` (ou la croix) referme la barre et rend le focus au texte.
+- La recherche ignore la casse et les accents (`elodie` trouve « Élodie ») et fonctionne aussi dans les tableaux et les blocs de code.
+
+La recherche ne modifie pas le Markdown : les surlignages sont seulement visuels et n'apparaissent ni dans le fichier ni dans l'export PDF.
+
+---
+
 ## Raccourcis utiles
 
 - Timeline narrative : `Ctrl + Shift + T` (via palette de commandes)
-- Recherche : `Ctrl + K`
+- Recherche globale : `Ctrl + K`
+- Recherche dans la note : `Ctrl + F`
 - Export PNG / PDF : boutons dans l'en-tête de la timeline

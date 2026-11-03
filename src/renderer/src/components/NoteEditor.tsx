@@ -35,7 +35,7 @@ import { history, redoCommand, undoCommand } from '@milkdown/kit/plugin/history'
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { $prose, callCommand, replaceAll } from '@milkdown/kit/utils'
 import { lift, wrapIn } from '@milkdown/kit/prose/commands'
-import { Plugin, PluginKey, Selection } from '@milkdown/kit/prose/state'
+import { Plugin, PluginKey, Selection, TextSelection } from '@milkdown/kit/prose/state'
 import { Decoration, DecorationSet } from '@milkdown/kit/prose/view'
 import { Fragment, type Node as PMNode } from '@milkdown/kit/prose/model'
 import type { Ctx } from '@milkdown/kit/ctx'
@@ -44,6 +44,8 @@ import {
   Bold,
   BookOpen,
   Check,
+  ChevronDown,
+  ChevronUp,
   Code,
   Download,
   FileText,
@@ -56,6 +58,7 @@ import {
   Quote,
   Redo2,
   Scissors,
+  Search,
   SquareCode,
   Strikethrough,
   Table2,
@@ -96,6 +99,7 @@ import {
   promoteTableHeader,
   stripTableBoundaryPadding
 } from '../table-edit'
+import { createNoteSearchPlugin, noteSearchKey } from '../note-search'
 import '@milkdown/kit/prose/view/style/prosemirror.css'
 
 interface NoteEditorProps {
@@ -225,6 +229,7 @@ const wikiLinkPlugin = $prose(
 )
 
 const tablePaddingPlugin = $prose(() => createTablePaddingPlugin())
+const noteSearchPlugin = $prose(() => createNoteSearchPlugin())
 
 function computeSplit(ctx: Ctx): SplitParts | null {
   const view = ctx.get(editorViewCtx)
@@ -382,6 +387,11 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   const [mentionsOpen, setMentionsOpen] = useState(false)
   const [mentionsMarkdown, setMentionsMarkdown] = useState(() => initialContent)
   const mentionsOpenRef = useRef(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchInfo, setSearchInfo] = useState({ total: 0, active: -1 })
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchOpenRef = useRef(false)
 
   const relatedNotes = useMemo(() => {
     if (!showRelatedNotes) return []
@@ -398,6 +408,10 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   useEffect(() => {
     mentionsOpenRef.current = mentionsOpen
   }, [mentionsOpen])
+
+  useEffect(() => {
+    searchOpenRef.current = searchOpen
+  }, [searchOpen])
 
   useEffect(() => {
     if (!mentionsOpen) return
@@ -761,6 +775,134 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   function focusEditor(): void {
     editorRef.current?.action((ctx) => ctx.get(editorViewCtx).focus())
   }
+
+  function syncSearchInfo(): void {
+    const editor = editorRef.current
+    if (!editor) {
+      setSearchInfo({ total: 0, active: -1 })
+      return
+    }
+    const info = editor.action((ctx) => {
+      const search = noteSearchKey.getState(ctx.get(editorViewCtx).state)
+      return { total: search?.matches.length ?? 0, active: search?.active ?? -1 }
+    })
+    setSearchInfo(info)
+  }
+
+  function revealSearchMatch(): void {
+    const editor = editorRef.current
+    if (!editor) return
+    editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx)
+      const search = noteSearchKey.getState(view.state)
+      if (!search || search.active < 0) return
+      const match = search.matches[search.active]
+      if (!match) return
+      view.dispatch(
+        view.state.tr
+          .setSelection(TextSelection.create(view.state.doc, match.from, match.to))
+          .scrollIntoView()
+      )
+    })
+  }
+
+  function runSearch(query: string): void {
+    const editor = editorRef.current
+    if (!editor) return
+    editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx)
+      view.dispatch(
+        view.state.tr.setMeta(noteSearchKey, {
+          query: query.trim() ? query : null,
+          active: 0
+        })
+      )
+    })
+    revealSearchMatch()
+    syncSearchInfo()
+  }
+
+  function stepSearch(direction: 1 | -1): void {
+    const editor = editorRef.current
+    if (!editor) return
+    editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx)
+      const search = noteSearchKey.getState(view.state)
+      if (!search || !search.matches.length) return
+      const current = search.active < 0 ? 0 : search.active
+      const active = (current + direction + search.matches.length) % search.matches.length
+      view.dispatch(view.state.tr.setMeta(noteSearchKey, { query: search.query, active }))
+      const match = search.matches[active]
+      if (!match) return
+      view.dispatch(
+        view.state.tr
+          .setSelection(TextSelection.create(view.state.doc, match.from, match.to))
+          .scrollIntoView()
+      )
+    })
+    syncSearchInfo()
+  }
+
+  function openSearch(): void {
+    setSearchOpen(true)
+    setLinkPrompt(null)
+    setTableMenu(null)
+    setBubble(null)
+    hideWikiMenu()
+    requestAnimationFrame(() => {
+      searchInputRef.current?.focus()
+      searchInputRef.current?.select()
+    })
+  }
+
+  function closeSearch(returnFocus = true): void {
+    setSearchOpen(false)
+    setSearchQuery('')
+    setSearchInfo({ total: 0, active: -1 })
+    const editor = editorRef.current
+    if (!editor) return
+    editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx)
+      view.dispatch(view.state.tr.setMeta(noteSearchKey, { query: null }))
+      if (returnFocus) view.focus()
+    })
+  }
+
+  function toggleSearch(): void {
+    if (searchOpen) closeSearch()
+    else openSearch()
+  }
+
+  function handleSearchInput(query: string): void {
+    setSearchQuery(query)
+    runSearch(query)
+  }
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      const mod = event.ctrlKey || event.metaKey
+      if (mod && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'f') {
+        const target = event.target as HTMLElement | null
+        if (
+          target &&
+          target !== searchInputRef.current &&
+          target.closest('input, textarea, select')
+        ) {
+          return
+        }
+        event.preventDefault()
+        openSearch()
+        return
+      }
+      if (event.key === 'Escape' && searchOpenRef.current) {
+        event.preventDefault()
+        closeSearch()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown, true)
+    return () => window.removeEventListener('keydown', onKeyDown, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function refreshFormatState(): void {
     const editor = editorRef.current
@@ -1284,6 +1426,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
         .use(commonmark)
         .use(gfm)
         .use(tablePaddingPlugin)
+        .use(noteSearchPlugin)
         .use(history)
         .use(listener)
         .use(wikiLinkPlugin)
@@ -1309,6 +1452,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
             .updated(() => {
               refreshFormatState()
               syncAutocomplete()
+              if (searchOpenRef.current) syncSearchInfo()
             })
         })
         .create()
@@ -1653,6 +1797,10 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
             {linkPrompt.error && <span className="link-error">{linkPrompt.error}</span>}
           </div>
         )}
+        <span className="fmt-sep" />
+        <FormatButton title="Rechercher dans la note (Ctrl+F)" active={searchOpen} toggle={false} onClick={toggleSearch}>
+          <Search size={15} />
+        </FormatButton>
         <span className="fmt-spacer" />
         <FormatButton title="Annuler (Ctrl+Z)" onClick={() => runCommand(undoCommand.key)}>
           <Undo2 size={15} />
@@ -1661,6 +1809,70 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
           <Redo2 size={15} />
         </FormatButton>
       </div>
+
+      {searchOpen && (
+        <div className="note-search" role="search" aria-label="Rechercher dans la note">
+          <Search className="note-search-icon" size={15} aria-hidden="true" />
+          <input
+            ref={searchInputRef}
+            className="note-search-input"
+            type="text"
+            value={searchQuery}
+            placeholder="Rechercher dans la note"
+            aria-label="Rechercher dans la note"
+            spellCheck={false}
+            onChange={(event) => handleSearchInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                stepSearch(event.shiftKey ? -1 : 1)
+              } else if (event.key === 'Escape') {
+                event.preventDefault()
+                closeSearch()
+              }
+            }}
+          />
+          <span className="note-search-count" aria-live="polite">
+            {!searchQuery.trim()
+              ? ''
+              : searchInfo.total
+                ? `${searchInfo.active + 1} / ${searchInfo.total}`
+                : 'Aucun résultat'}
+          </span>
+          <button
+            type="button"
+            className="note-search-btn"
+            title="Occurrence précédente (Maj+Entrée)"
+            aria-label="Occurrence précédente"
+            disabled={!searchInfo.total}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => stepSearch(-1)}
+          >
+            <ChevronUp size={15} />
+          </button>
+          <button
+            type="button"
+            className="note-search-btn"
+            title="Occurrence suivante (Entrée)"
+            aria-label="Occurrence suivante"
+            disabled={!searchInfo.total}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => stepSearch(1)}
+          >
+            <ChevronDown size={15} />
+          </button>
+          <button
+            type="button"
+            className="note-search-btn"
+            title="Fermer la recherche (Échap)"
+            aria-label="Fermer la recherche"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => closeSearch()}
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
 
       {tableMenu && (
         <div

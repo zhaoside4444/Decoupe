@@ -1977,6 +1977,84 @@ button {
   flex: 1;
 }
 
+/* ---------- Recherche dans la note ---------- */
+
+.note-search {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-panel);
+}
+
+.note-search-icon {
+  flex: 0 0 auto;
+  color: var(--ink-faint);
+}
+
+.note-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 340px;
+  padding: 4px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  outline: none;
+  background: var(--bg-elev);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.note-search-input:focus {
+  border-color: var(--accent);
+}
+
+.note-search-count {
+  flex: 0 0 auto;
+  min-width: 76px;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.note-search-btn {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.note-search-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+
+.note-search-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.note-search-match {
+  border-radius: 2px;
+  background: rgba(180, 85, 47, 0.18);
+}
+
+.note-search-match.is-active {
+  background: var(--accent);
+  color: #fffdf9;
+}
+
 .table-picker {
   position: relative;
   display: flex;

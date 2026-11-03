@@ -346,3 +346,48 @@ describe('NoteEditor — mise en forme et contenu', () => {
     expect(screen.getByText(/Glisser une note sur une autre pour fusionner/)).toBeInTheDocument()
   })
 })
+
+describe('NoteEditor — recherche dans la note', () => {
+  it('ouvre la barre de recherche depuis la mise en forme', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+
+    expect(screen.queryByRole('search')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Rechercher dans la note (Ctrl+F)' }))
+
+    const bar = screen.getByRole('search', { name: 'Rechercher dans la note' })
+    expect(bar).toBeInTheDocument()
+    const input = within(bar).getByRole('textbox', { name: 'Rechercher dans la note' })
+    await waitFor(() => expect(input).toHaveFocus())
+  })
+
+  it('s’ouvre avec Ctrl+F et se referme avec Échap', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+
+    await user.keyboard('{Control>}f{/Control}')
+
+    const input = await screen.findByRole('textbox', { name: 'Rechercher dans la note' })
+    await waitFor(() => expect(input).toHaveFocus())
+
+    await user.type(input, 'Alice')
+    expect(screen.getByText('Aucun résultat')).toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('search')).not.toBeInTheDocument()
+  })
+
+  it('propose les occurrences suivante et précédente et se ferme au bouton', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+
+    await user.click(screen.getByRole('button', { name: 'Rechercher dans la note (Ctrl+F)' }))
+    const bar = screen.getByRole('search', { name: 'Rechercher dans la note' })
+    expect(within(bar).getByRole('button', { name: 'Occurrence suivante' })).toBeDisabled()
+    expect(within(bar).getByRole('button', { name: 'Occurrence précédente' })).toBeDisabled()
+
+    await user.click(within(bar).getByRole('button', { name: 'Fermer la recherche' }))
+    expect(screen.queryByRole('search')).not.toBeInTheDocument()
+  })
+})
