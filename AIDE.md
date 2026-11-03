@@ -53,6 +53,7 @@ Lorsque le curseur est dans un tableau, un groupe **Tableau** apparaît dans la 
 - `− Ligne`, `− Colonne` et `− Tableau` suppriment l'élément courant. Supprimer la ligne d'en-tête promeut la première ligne de contenu comme nouvel en-tête ; l'action est désactivée quand le tableau ne garderait qu'une seule ligne. `− Colonne` est désactivé quand il ne resterait plus qu'une colonne.
 
 - `Tab` et `Maj+Tab` passent d'une cellule à l'autre.
+- Quand un tableau commence ou termine la note, une ligne vide est automatiquement disponible au-dessus ou en dessous pour y écrire du texte. Elle ne laisse aucune trace dans le fichier Markdown.
 - Le tableau reste du Markdown standard (GFM) : il est lisible hors de Découpe et repris dans l'export PDF. La première ligne sert toujours d'en-tête.
 
 ---

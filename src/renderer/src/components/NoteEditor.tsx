@@ -90,7 +90,12 @@ import {
   canDeleteTableRow,
   type TableContext
 } from './TableTools'
-import { promoteTableHeader } from '../table-edit'
+import {
+  createTablePaddingPlugin,
+  ensureTablePadding,
+  promoteTableHeader,
+  stripTableBoundaryPadding
+} from '../table-edit'
 import '@milkdown/kit/prose/view/style/prosemirror.css'
 
 interface NoteEditorProps {
@@ -219,6 +224,8 @@ const wikiLinkPlugin = $prose(
     })
 )
 
+const tablePaddingPlugin = $prose(() => createTablePaddingPlugin())
+
 function computeSplit(ctx: Ctx): SplitParts | null {
   const view = ctx.get(editorViewCtx)
   const { state } = view
@@ -266,8 +273,8 @@ function computeSplit(ctx: Ctx): SplitParts | null {
     const beforeDoc = doc.type.create(null, Fragment.fromArray(before))
     const afterDoc = doc.type.create(null, Fragment.fromArray(after))
     return {
-      before: normalizeMarkdown(serializer(beforeDoc)).trim(),
-      after: normalizeMarkdown(serializer(afterDoc)).trim()
+      before: stripTableBoundaryPadding(normalizeMarkdown(serializer(beforeDoc))).trim(),
+      after: stripTableBoundaryPadding(normalizeMarkdown(serializer(afterDoc))).trim()
     }
   } catch {
     return null
@@ -1021,7 +1028,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   }
 
   function scheduleSave(markdown: string): void {
-    const normalized = normalizeMarkdown(markdown)
+    const normalized = normalizeMarkdown(stripTableBoundaryPadding(markdown))
     const frontmatter = frontmatterRef.current
     const composed = frontmatter ? `${frontmatter}\n\n${normalized}` : normalized
     latestRef.current = composed
@@ -1276,6 +1283,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
         })
         .use(commonmark)
         .use(gfm)
+        .use(tablePaddingPlugin)
         .use(history)
         .use(listener)
         .use(wikiLinkPlugin)
@@ -1311,6 +1319,9 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
       }
       editorRef.current = editor
       requestAnimationFrame(() => {
+        const current = editor
+        if (cancelled || !current) return
+        current.action((ctx) => ensureTablePadding(ctx.get(editorViewCtx)))
         fixImages()
         focusEnd()
         refreshFormatState()
