@@ -1,6 +1,6 @@
 ﻿# Roadmap Decoupe
 
-> État au 3 novembre 2026 — version 0.1.0
+> État au 3 novembre 2026 — version 1.0.0
 
 ## Principes
 

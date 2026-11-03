@@ -110,4 +110,4 @@ Les retours et contributions sont bienvenus. Avant d'ouvrir une modification :
 
 ## État du projet
 
-Version **0.1.0**. Les paquets Windows (installateur NSIS et archive ZIP) sont produits par `npm run dist`. La signature de code n'est pas encore en place : Windows peut afficher un avertissement SmartScreen au premier lancement.
+Version **1.0.0**. Les paquets Windows (installateur NSIS et archive ZIP) sont produits par `npm run dist`. La signature de code n'est pas encore en place : Windows peut afficher un avertissement SmartScreen au premier lancement. La procédure de publication est décrite dans [RELEASE.md](RELEASE.md) et le détail des changements dans [CHANGELOG.md](CHANGELOG.md).
