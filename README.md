@@ -2,7 +2,7 @@
 
 Prendre des notes, les organiser, les découper.
 
-Découpe est une application de bureau (Electron + React) pour écrire et ranger des notes en Markdown, avec une attention particulière à l'écriture de romans : liens wiki, tags, corbeille, sauvegardes locales et timeline narrative personnages × chapitres.
+Découpe est une application de bureau (Electron + React) pour écrire et ranger des notes en Markdown, avec une attention particulière à l'écriture de romans : liens wiki, tags, corbeille, sauvegardes locales et timeline narrative personnages × chapitres. Cette application a été générée via OpenCode principalement avec Big Pickle.
 
 Le vault reste un simple dossier de fichiers `.md` : il est lisible dans n'importe quel éditeur et compatible avec les outils qui travaillent sur du Markdown.
 
