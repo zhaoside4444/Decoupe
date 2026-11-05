@@ -109,6 +109,6 @@ Vérifier sur GitHub que le job « Vérification » passe (typecheck, tests, bui
 
 ## Signature de code (optionnelle)
 
-La signature n'est pas requise pour publier, mais elle améliore l'expérience au premier lancement. Une fois un certificat disponible, renseigner les variables standard d'electron-builder (`CSC_LINK`, `CSC_KEY_PASSWORD`) et retirer `signAndEditExecutable: false` de `electron-builder.yml`. Ne jamais committer de certificat ni de mot de passe.
+La signature n'est pas requise pour publier, mais elle améliore l'expérience au premier lancement. Une fois un certificat disponible, renseigner les variables standard d'electron-builder (`CSC_LINK`, `CSC_KEY_PASSWORD`) et retirer `signExecutable: false` de `electron-builder.yml` (cette option conserve l'icône et les métadonnées tout en désactivant la signature). Ne jamais committer de certificat ni de mot de passe.
 
 Pistes pour un projet open source : SignPath et Azure Trusted Signing. La signature peut être ajoutée après la première release, sans changer le format des vaults.

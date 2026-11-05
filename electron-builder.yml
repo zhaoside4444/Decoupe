@@ -11,7 +11,7 @@ asar: true
 disableAsarIntegrity: true
 win:
   icon: build/icon.ico
-  signAndEditExecutable: false
+  signExecutable: false
   target:
     - zip
     - nsis
