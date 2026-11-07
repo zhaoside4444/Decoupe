@@ -38,6 +38,7 @@ Première version publique.
 - L'interface et l'aide sont uniquement en français.
 - Pas de synchronisation cloud, de collaboration en temps réel ni de version mobile.
 - La recherche dans la note ne traverse pas les changements de mise en forme (un mot en gras au milieu d'une expression coupe la correspondance).
+- Les commentaires Markdown ne sont pas masqués : `<!-- ... -->` et `%% ... %%` restent visibles dans l'éditeur et dans l'export PDF.
 
 ## Format des versions
 

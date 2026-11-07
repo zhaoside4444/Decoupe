@@ -94,6 +94,17 @@ La recherche ne modifie pas le Markdown : les surlignages sont seulement visuels
 
 ---
 
+## Commentaires
+
+Découpe ne masque pas encore les commentaires Markdown. Les deux formes courantes sont conservées dans le fichier, mais restent visibles dans l'éditeur et dans l'export PDF :
+
+- `<!-- commentaire -->` : la forme HTML standard, la plus portable ;
+- `%% commentaire %%` : la forme utilisée par Obsidian, qui n'est pas du Markdown standard.
+
+Ne les utilisez donc pas pour des remarques destinées à rester invisibles : elles apparaissent comme du texte. Pour une note personnelle hors du document, créez une note séparée dans le vault. Une prise en charge de vrais commentaires masqués est prévue pour une version ultérieure.
+
+---
+
 ## Raccourcis utiles
 
 - Timeline narrative : `Ctrl + Shift + T` (via palette de commandes)
