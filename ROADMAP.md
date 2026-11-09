@@ -1,6 +1,6 @@
 ﻿# Roadmap Decoupe
 
-> État au 3 novembre 2026 — version 1.0.0
+> État au 9 novembre 2026 — version 1.0.0
 
 ## Principes
 
@@ -200,6 +200,68 @@
 
 > **Décision open source** : le projet sera distribué en open source. Signature gratuite possible via SignPath (signpath.io) ou Azure Trusted Signing (~10 $/mois).
 
+## Phase 6 — Évolutions après la 1.0.0
+
+> Planifiées les 7 et 9 novembre 2026. Rien n’est implémenté : la 1.0.0 reste gelée jusqu’à sa validation manuelle et sa publication.
+
+### 20. Comparer deux notes côte à côte
+- [ ] Afficher une seconde note en lecture seule à côté de la note active.
+- [ ] Choisir la note comparée par `Ctrl + clic`, par la palette de commandes ou depuis l’en-tête de l’éditeur.
+- [ ] Ajouter un séparateur redimensionnable et mémoriser la largeur des panneaux.
+- [ ] Empiler les panneaux sur les fenêtres étroites et proposer une action « Fermer la comparaison ».
+- [ ] Réutiliser le rendu de l’éditeur (tableaux, listes de tâches, images, wiki-liens) sans dupliquer les écouteurs globaux.
+- [ ] Laisser hors périmètre : diff mot à mot, défilement synchronisé, comparaison de plus de deux notes.
+
+**Effort : M** — Environ 2 à 3 jours, tests et documentation compris. Risque faible : la note comparée est en lecture seule, donc la sauvegarde, les conflits externes et la recherche dans la note restent liés à la seule note active. Une version ultérieure pourra rendre les deux panneaux éditables.
+
+### 21. Ordre manuel des cartes d’un espace
+- [ ] Ajouter un mode de tri « Ordre manuel » au sélecteur existant.
+- [ ] Réordonner les cartes par glisser-déposer, avec indicateur d’insertion entre deux cartes.
+- [ ] Déplacer la fusion de notes vers un geste explicite (menu contextuel ou `Alt + glisser`) pour ne pas la confondre avec le réordonnancement.
+- [ ] Ajouter « Monter / Descendre » au clavier et dans le menu contextuel.
+- [ ] Persister l’ordre par espace, de préférence dans `.decoupe/order.json`, avec réconciliation des notes ajoutées, supprimées ou déplacées.
+- [ ] Désactiver le réordonnancement pendant une recherche active.
+- [ ] Trancher le comportement des notes épinglées en ordre manuel.
+
+**Effort : M** — Environ 3 à 4 jours, tests et documentation compris. Risque faible à moyen : le point délicat est la coexistence du glisser pour réordonner et du glisser pour fusionner, plus la réconciliation de l’ordre avec les fichiers du vault.
+
+> **Décision en attente** : l’ordre doit-il être stocké dans `.decoupe/order.json` (aucune pollution des notes, non portable sans le dossier `.decoupe`) ou dans un champ `order` du frontmatter (portable, mais réécrit plusieurs `.md` à chaque déplacement) ?
+
+### 22. Boutons de tons pinyin
+- [ ] Ajouter un bouton « Tons » dans la barre de mise en forme.
+- [ ] Ouvrir un popover avec les quatre tons, le tréma `ü` et un champ de conversion `hao3` → `hǎo`.
+- [ ] Appliquer le ton à la syllabe sélectionnée, ou au groupe de lettres qui précède le curseur.
+- [ ] Placer automatiquement la marque selon la règle standard : `a`, puis `e`, puis `ou`, sinon la dernière voyelle.
+- [ ] Gérer `v` / `u:` pour `ü`, les majuscules, le ton neutre et les nasales syllabiques.
+- [ ] Utiliser une seule transaction d’édition pour que `Ctrl+Z` fonctionne normalement.
+- [ ] Documenter PowerToys comme solution recommandée en attendant.
+
+**Effort : S/M** — Environ 1,5 à 2 jours, tests compris. **Non planifié pour l’instant** : PowerToys couvre déjà la frappe courante, et la valeur ajoutée serait le placement automatique du ton. Décisions ouvertes : popover unique ou quatre boutons permanents, présence du champ de conversion, et intégration éventuelle dans la bulle de sélection.
+
+### 23. Prise de notes multilingue (réflexion)
+> Aucune implémentation planifiée. Objectif : identifier les conséquences d’un vault contenant plusieurs écritures avant d’ajouter une fonctionnalité.
+
+**Ce qui fonctionne déjà**
+
+- Le contenu, les tags, les wiki-liens et les noms d’espaces acceptent l’Unicode.
+- La recherche par sous-chaîne fonctionne pour les écritures sans espaces (chinois, japonais).
+- Les noms de dossiers non latins sont acceptés ; seuls les noms de fichiers de notes sont contraints.
+
+**Points à trancher**
+
+- [ ] **Noms de fichiers** : `slugify` ne conserve que l’ASCII ; un titre uniquement en sinogrammes produit `note.md`, `note-2.md`. Faut-il conserver les lettres Unicode, translittérer (pinyin, romaji) ou garder l’ASCII ?
+- [ ] **Tri** : les notes, tags, espaces et suggestions utilisent `localeCompare(..., 'fr')` ; le chinois n’est pas trié par pinyin et le japonais mélange kana et kanji. Faut-il une locale par note, un réglage global ou un champ de lecture (`pinyin`, `romaji`) dans le frontmatter ?
+- [ ] **Recherche globale** : insensible à la casse, mais pas aux accents, aux largeurs ni aux diacritiques (harakat arabes). Faut-il l’aligner sur `Ctrl+F`, qui replie déjà les accents ?
+- [ ] **Équivalences d’écriture** : faut-il rapprocher hiragana et katakana, simplifié et traditionnel, ou les formes pleine et demi-largeur ?
+- [ ] **Direction** : l’arabe, l’hébreu et le persan s’affichent, mais les paragraphes, listes et tableaux n’ont pas de `dir="auto"`. Faut-il une direction par paragraphe ou par note ?
+- [ ] **Langue du document** : `index.html` et l’export PDF déclarent `lang="fr"` ; la césure et les lecteurs d’écran appliquent donc le français à toutes les notes. Faut-il un champ `lang` dans le frontmatter ?
+- [ ] **Polices et PDF** : le PDF utilise une pile `Segoe UI / Roboto / Helvetica` ; sous Windows, le repli CJK et arabe fonctionne, ailleurs le rendu n’est pas garanti. Faut-il une liste explicite de polices de repli, sans embarquer une police CJK lourde ?
+- [ ] **Mentions** : la détection exige une frontière avant et après le titre (ni lettre, ni chiffre, ni underscore) et un titre d’au moins 4 caractères ; en chinois ou en japonais, un nom collé à du texte sans espace n’est jamais détecté, et les noms de 2 à 3 caractères sont exclus. Faut-il une détection par sous-chaîne avec un seuil adapté à l’écriture ?
+- [ ] **Saisie** : tester les IME (chinois, japonais, coréen, arabe) avec les raccourcis globaux et la barre de mise en forme ; les boutons de tons pinyin sont un cas particulier de la section 22.
+- [ ] **Césure et mots longs** : vérifier l’allemand, le finnois et le thaï (sans espaces) dans l’éditeur et dans le PDF.
+
+**Effort : inconnu** — À découper après des tests réels dans plusieurs écritures. Les chantiers les moins coûteux sont les noms de fichiers Unicode, la normalisation de la recherche globale et le `dir="auto"` ; le tri par pinyin et la détection de mentions CJK demandent plus de conception.
+
 ## Séquence recommandée
 
 1. [x] Corbeille visible.
@@ -215,6 +277,10 @@
 11. [x] Timeline narrative, exports PNG/PDF et confort de la barre latérale.
 12. [x] Distribution technique : installateur NSIS, README, BUILD.md, licence MIT et CI.
 13. [ ] Signature de code et première release publique.
+14. [ ] Comparer deux notes côte à côte — 1.1.
+15. [ ] Ordre manuel des cartes d’un espace — 1.2.
+16. [ ] Boutons de tons pinyin — confort, sans version cible ; PowerToys reste la solution recommandée en attendant.
+17. [ ] Prise de notes multilingue — réflexion à découper avant toute implémentation.
 
 ## Décisions à prendre
 
@@ -223,3 +289,8 @@
 - Faut-il autoriser la modification manuelle de la date de création ?
 - Quel niveau de compatibilité Obsidian faut-il garantir pour les liens et le frontmatter ?
 - Notes épinglées : **décision** frontmatter `pinned: true`, portable et lisible hors application.
+- Comparaison de deux notes : **proposition** seconde note en lecture seule d’abord, deux panneaux éditables seulement si le besoin est confirmé.
+- Ordre manuel des cartes : **à trancher** entre `.decoupe/order.json` et un champ `order` du frontmatter.
+- Tons du pinyin : **décision** rester sur PowerToys pour l’instant ; les boutons intégrés restent une piste de confort sans version cible.
+- Prise de notes multilingue : **à définir** — quelles écritures doivent être garanties (chinois, japonais, coréen, arabe, autres) et jusqu’où vont les équivalences de recherche et de tri.
+- Noms de fichiers : **à trancher** entre conserver l’ASCII actuel et accepter les lettres Unicode dans les noms de notes.
