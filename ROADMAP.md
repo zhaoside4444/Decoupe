@@ -264,6 +264,17 @@
 
 **Effort : inconnu** — À découper après des tests réels dans plusieurs écritures. Les chantiers les moins coûteux sont les noms de fichiers Unicode, la normalisation de la recherche globale et le `dir="auto"` ; le tri par pinyin et la détection de mentions CJK demandent plus de conception.
 
+### 24. Mode immersion : masquer la barre latérale et la liste des notes
+- [ ] Ajouter des boutons pour masquer puis réafficher la barre latérale (espaces, recherche) et la liste des notes.
+- [ ] Prévoir des raccourcis clavier et des entrées dans la palette de commandes pour les deux zones.
+- [ ] Étendre l’éditeur à la largeur restante, sans dépasser la largeur de lecture confortable déjà réglable.
+- [ ] Garder un accès rapide aux zones masquées : bouton discret, survol du bord ou raccourci.
+- [ ] Mémoriser l’état ouvert/fermé, ou le réinitialiser à chaque session.
+- [ ] Vérifier les interactions avec la comparaison, les liens entrants, la timeline et les fenêtres étroites.
+- [ ] Ne pas casser la navigation clavier ni la palette de commandes (`Ctrl + K`).
+
+**Effort : S/M** — Environ 1 à 2 jours, tests et documentation compris. Risque faible : il s’agit surtout de disposition et de préférences d’affichage. Décisions ouvertes : masquer les deux zones d’un coup (« mode concentration ») ou indépendamment ; état persistant par vault ou par session ; révélation temporaire au survol ou uniquement par action explicite.
+
 ## Séquence recommandée
 
 1. [x] Corbeille visible.
@@ -283,6 +294,7 @@
 15. [ ] Ordre manuel des cartes d’un espace — 1.2.
 16. [ ] Boutons de tons pinyin — confort, sans version cible ; PowerToys reste la solution recommandée en attendant.
 17. [ ] Prise de notes multilingue — réflexion à découper avant toute implémentation.
+18. [ ] Mode immersion : masquer la barre latérale et/ou la liste des notes — confort, sans version cible.
 
 ## Décisions à prendre
 
@@ -295,4 +307,5 @@
 - Ordre manuel des cartes : **à trancher** entre `.decoupe/order.json` et un champ `order` du frontmatter.
 - Tons du pinyin : **décision** rester sur PowerToys pour l’instant ; les boutons intégrés restent une piste de confort sans version cible.
 - Prise de notes multilingue : **à définir** — quelles écritures doivent être garanties (chinois, japonais, coréen, arabe, autres) et jusqu’où vont les équivalences de recherche et de tri.
+- Mode immersion : **à trancher** — masquer les deux zones ensemble ou indépendamment, et mémoriser l’état entre les sessions.
 - Noms de fichiers : **à trancher** entre conserver l’ASCII actuel et accepter les lettres Unicode dans les noms de notes.
