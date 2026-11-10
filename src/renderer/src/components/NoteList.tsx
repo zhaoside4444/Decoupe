@@ -13,6 +13,7 @@ import {
   CalendarDays,
   Check,
   Clock,
+  Columns2,
   FolderInput,
   Pin,
   PinOff,
@@ -36,7 +37,9 @@ interface NoteListProps {
   sortMode: NoteSortMode
   spaces: Space[]
   keyNavIndex?: number | null
+  comparePath?: string | null
   onSelect: (path: string) => void
+  onCompare?: (path: string) => void
   onSortChange: (mode: NoteSortMode) => void
   onTogglePin: (path: string) => void
   onBatchMove: (paths: string[], space: string) => Promise<boolean>
@@ -123,7 +126,9 @@ export function NoteList({
   sortMode,
   spaces,
   keyNavIndex = null,
+  comparePath = null,
   onSelect,
+  onCompare,
   onSortChange,
   onTogglePin,
   onBatchMove,
@@ -214,6 +219,11 @@ export function NoteList({
     index: number
   ): void {
     const path = notes[index].path
+    if (event.altKey && onCompare) {
+      event.preventDefault()
+      onCompare(path)
+      return
+    }
     if (event.ctrlKey || event.metaKey) {
       setAnchor(index)
       setSelection((current: string[]) =>
@@ -418,6 +428,8 @@ export function NoteList({
             className={`note-card ${note.path === selectedPath ? 'is-selected' : ''} ${
               hover === note.path ? 'is-drop' : ''
             } ${note.pinned ? 'is-pinned' : ''} ${
+              note.path === comparePath ? 'is-compared' : ''
+            } ${
               activeSelection.includes(note.path) ? 'is-checked' : ''
             } ${keyNavIndex === index ? 'is-keynav' : ''}`}
             draggable
@@ -515,6 +527,12 @@ export function NoteList({
                 </span>
               ) : null}
               {note.space && !searchActive ? <span className="note-space">{note.space}</span> : null}
+              {note.path === comparePath ? (
+                <span className="note-compare-badge" title="Affichée dans le panneau de comparaison">
+                  <Columns2 size={10} />
+                  Comparée
+                </span>
+              ) : null}
             </div>
           </article>
         ))}

@@ -28,6 +28,9 @@ interface CommandPaletteProps {
   onExportPdf?: () => void
   onSortChange: (mode: NoteSortMode) => void
   onToggleRelatedNotes?: () => void
+  comparePath?: string | null
+  onCompareWith?: () => void
+  onCloseCompare?: () => void
 }
 
 interface PaletteEntry {
@@ -82,7 +85,10 @@ export function CommandPalette({
   onOpenTimeline,
   onExportPdf,
   onSortChange,
-  onToggleRelatedNotes
+  onToggleRelatedNotes,
+  comparePath = null,
+  onCompareWith,
+  onCloseCompare
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
@@ -189,6 +195,25 @@ export function CommandPalette({
       }
     ]
     if (selectedPath) {
+      if (onCompareWith) {
+        list.push({
+          id: 'compare-with',
+          kind: 'action',
+          group: 'Note ouverte',
+          label: 'Comparer avec une autre note…',
+          hint: 'Alt+clic',
+          run: onCompareWith
+        })
+      }
+      if (comparePath && onCloseCompare) {
+        list.push({
+          id: 'close-compare',
+          kind: 'action',
+          group: 'Note ouverte',
+          label: 'Fermer la comparaison',
+          run: onCloseCompare
+        })
+      }
       list.push({
         id: 'pin-current',
         kind: 'action',
@@ -227,7 +252,10 @@ export function CommandPalette({
     }
     return list
   }, [
+    comparePath,
     currentSpace,
+    onCloseCompare,
+    onCompareWith,
     onMoveCurrent,
     onNewNote,
     onOpenBackups,

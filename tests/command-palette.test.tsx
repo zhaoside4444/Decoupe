@@ -35,7 +35,7 @@ const spaces: Space[] = [
 
 const tagStats: TagSummary[] = [{ name: 'personnage', count: 1 }]
 
-function renderPalette() {
+function renderPalette(overrides: Partial<Parameters<typeof CommandPalette>[0]> = {}) {
   const props = {
     notes,
     spaces,
@@ -56,7 +56,8 @@ function renderPalette() {
     onOpenTimeline: vi.fn(),
     onExportPdf: vi.fn(),
     onSortChange: vi.fn(),
-    onToggleRelatedNotes: vi.fn()
+    onToggleRelatedNotes: vi.fn(),
+    ...overrides
   }
   render(<CommandPalette {...props} />)
   return props
@@ -133,5 +134,29 @@ describe('CommandPalette', () => {
 
     await user.keyboard('{Enter}')
     expect(props.onClose).not.toHaveBeenCalled()
+  })
+
+  it('propose de comparer la note ouverte', async () => {
+    const user = userEvent.setup()
+    const props = renderPalette({ onCompareWith: vi.fn() })
+
+    await user.type(paletteInput(), 'Comparer avec')
+    await user.click(screen.getByRole('button', { name: /Comparer avec une autre note/ }))
+
+    expect(props.onCompareWith).toHaveBeenCalled()
+    expect(props.onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('propose de fermer la comparaison en cours', async () => {
+    const user = userEvent.setup()
+    const props = renderPalette({
+      comparePath: 'Notes/Chapitres/Chapitre 1.md',
+      onCloseCompare: vi.fn()
+    })
+
+    await user.type(paletteInput(), 'Fermer la comparaison')
+    await user.click(screen.getByRole('button', { name: 'Fermer la comparaison' }))
+
+    expect(props.onCloseCompare).toHaveBeenCalled()
   })
 })

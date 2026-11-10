@@ -94,6 +94,21 @@ La recherche ne modifie pas le Markdown : les surlignages sont seulement visuels
 
 ---
 
+## Comparer deux notes
+
+Une seconde note peut rester ouverte en lecture seule à côté de la note active, pour vérifier un détail, un nom ou une formulation sans perdre le fil.
+
+- **Ouvrir la comparaison** : `Alt + clic` sur une carte de la liste, bouton colonnes dans l'en-tête de l'éditeur, ou palette `Ctrl + K` puis « Comparer avec une autre note… ».
+- La note comparée s'affiche avec le même rendu que l'éditeur : tableaux, listes de tâches, images et wiki-liens. Elle ne peut pas être modifiée : le texte, les cases à cocher et les tableaux y sont figés.
+- Cliquer un wiki-lien dans le panneau comparé ouvre sa cible **dans ce panneau**, sans changer la note active.
+- La flèche du panneau comparé bascule cette note dans l'éditeur principal ; la croix referme la comparaison.
+- Faire glisser le séparateur (ou le sélectionner au clavier avec `Tab` puis `←` / `→`) ajuste la largeur des deux panneaux. Cette largeur est mémorisée d'une session à l'autre.
+- Sous 1280 pixels de large, les deux notes s'empilent verticalement et le séparateur disparaît.
+- La comparaison se ferme d'elle-même si la note comparée devient la note active, est supprimée, déplacée ou si vous changez de vault.
+- Hors périmètre pour l'instant : diff mot à mot, défilement synchronisé et comparaison de plus de deux notes.
+
+---
+
 ## Commentaires
 
 Découpe ne masque pas encore les commentaires Markdown. Les deux formes courantes sont conservées dans le fichier, mais restent visibles dans l'éditeur et dans l'export PDF :
@@ -110,4 +125,5 @@ Ne les utilisez donc pas pour des remarques destinées à rester invisibles : el
 - Timeline narrative : `Ctrl + Shift + T` (via palette de commandes)
 - Recherche globale : `Ctrl + K`
 - Recherche dans la note : `Ctrl + F`
+- Comparer avec une autre note : `Alt + clic` sur une carte de la liste
 - Export PNG / PDF : boutons dans l'en-tête de la timeline

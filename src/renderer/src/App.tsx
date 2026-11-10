@@ -1,5 +1,9 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent
+} from 'react'
+import type {
   BacklinkEntry,
   BackupEntry,
   NoteSummary,
@@ -38,9 +42,17 @@ import type { RelatedNote } from '@shared/related'
 import { buildTimelineData } from '@shared/timeline'
 import { updateRecentVaults } from '@shared/vaults'
 import { detectExternalChange, type ExternalChange } from '@shared/external'
+import {
+  COMPARE_RATIO_STEP,
+  clampCompareRatio,
+  loadCompareRatio,
+  saveCompareRatio
+} from './compare'
 import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
 import { NoteEditor, type NoteEditorHandle } from './components/NoteEditor'
+import { NoteComparePane } from './components/NoteComparePane'
+import { ComparePicker } from './components/ComparePicker'
 import { BacklinksPanel } from './components/BacklinksPanel'
 import { Onboarding } from './components/Onboarding'
 import { EmptyEditor } from './components/EmptyEditor'
@@ -142,6 +154,18 @@ function MainApp() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settings, setSettings] = useState<UiSettings>(() => loadUiSettings())
   const [pdfExportOpen, setPdfExportOpen] = useState(false)
+  const [comparePath, setComparePath] = useState<string | null>(null)
+  const [compareContent, setCompareContent] = useState('')
+  const [compareLoading, setCompareLoading] = useState(false)
+  const [compareError, setCompareError] = useState<string | null>(null)
+  const [comparePickerOpen, setComparePickerOpen] = useState(false)
+  const [compareRatio, setCompareRatio] = useState(() => loadCompareRatio())
+  const workspaceRef = useRef<HTMLDivElement | null>(null)
+  const compareRatioRef = useRef(compareRatio)
+
+  useEffect(() => {
+    compareRatioRef.current = compareRatio
+  }, [compareRatio])
 
   const keyIndexRef = useRef<number | null>(null)
 
@@ -212,6 +236,118 @@ function MainApp() {
   }, [])
 
   const closeToast = useCallback(() => setToast(null), [])
+
+  const compareSummary = useMemo(
+    () => (comparePath ? notes.find((note) => note.path === comparePath) : undefined),
+    [notes, comparePath]
+  )
+
+  const closeCompare = useCallback((): void => {
+    setComparePath(null)
+    setComparePickerOpen(false)
+  }, [])
+
+  const openCompare = useCallback((path: string): void => {
+    if (!path || path === selectedPathRef.current) return
+    setCompareContent('')
+    setCompareError(null)
+    setCompareLoading(true)
+    setComparePath(path)
+    setComparePickerOpen(false)
+  }, [])
+
+  const openCompareLink = useCallback(
+    (target: string): void => {
+      const found = notesRef.current.find(
+        (note) => note.base.toLowerCase() === target.toLowerCase()
+      )
+      if (!found) {
+        showToast(`Note « ${target} » introuvable`)
+        return
+      }
+      if (found.path === selectedPathRef.current) {
+        showToast('Cette note est déjà ouverte dans l’éditeur.')
+        return
+      }
+      setCompareContent('')
+      setCompareError(null)
+      setCompareLoading(true)
+      setComparePath(found.path)
+    },
+    [showToast]
+  )
+
+  useEffect(() => {
+    if (comparePath && selectedPath === comparePath) setComparePath(null)
+  }, [comparePath, selectedPath])
+
+  useEffect(() => {
+    if (!comparePath || !notes.length) return
+    if (!notes.some((note) => note.path === comparePath)) setComparePath(null)
+  }, [comparePath, notes])
+
+  useEffect(() => {
+    if (!comparePath) {
+      setCompareContent('')
+      setCompareError(null)
+      setCompareLoading(false)
+      return
+    }
+    let cancelled = false
+    setCompareLoading(true)
+    setCompareError(null)
+    window.api
+      .readNote(comparePath)
+      .then((content) => {
+        if (cancelled) return
+        setCompareContent(content)
+        setCompareLoading(false)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setCompareError(errorMessage(error))
+        setCompareLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [comparePath, compareSummary?.updatedAt])
+
+  const resizeCompare = useCallback((event: ReactPointerEvent<HTMLDivElement>): void => {
+    event.preventDefault()
+    const workspace = workspaceRef.current
+    if (!workspace) return
+    const rect = workspace.getBoundingClientRect()
+    if (!rect.width) return
+    let latest = compareRatioRef.current
+    const onMove = (moveEvent: PointerEvent): void => {
+      latest = clampCompareRatio((rect.right - moveEvent.clientX) / rect.width)
+      compareRatioRef.current = latest
+      setCompareRatio(latest)
+    }
+    const onUp = (): void => {
+      document.removeEventListener('pointermove', onMove)
+      document.removeEventListener('pointerup', onUp)
+      document.body.classList.remove('is-resizing-compare')
+      saveCompareRatio(latest)
+    }
+    document.body.classList.add('is-resizing-compare')
+    document.addEventListener('pointermove', onMove)
+    document.addEventListener('pointerup', onUp)
+  }, [])
+
+  const nudgeCompare = useCallback((event: ReactKeyboardEvent<HTMLDivElement>): void => {
+    const direction =
+      event.key === 'ArrowLeft' ? 1 : event.key === 'ArrowRight' ? -1 : 0
+    if (!direction) return
+    event.preventDefault()
+    setCompareRatio((current) => {
+      const next = clampCompareRatio(current + direction * COMPARE_RATIO_STEP)
+      compareRatioRef.current = next
+      saveCompareRatio(next)
+      return next
+    })
+  }, [])
 
   const raiseExternalChange = useCallback((change: ExternalChange | null): void => {
     externalChangeRef.current = change
@@ -593,6 +729,8 @@ function MainApp() {
       setTrashItems([])
       setTrashOpen(false)
       setBackupOpen(false)
+      setComparePath(null)
+      setComparePickerOpen(false)
       const next = await refresh(false)
       try {
         const recentRaw = window.localStorage.getItem('recentVaults')
@@ -1517,6 +1655,7 @@ function MainApp() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (paletteOpen || trashOpen || backupOpen || externalChange || settingsOpen) return
+      if (comparePickerOpen) return
       const key = event.key
       if (key !== 'ArrowDown' && key !== 'ArrowUp' && key !== 'Enter') return
       if (event.ctrlKey || event.metaKey || event.altKey) return
@@ -1550,6 +1689,7 @@ function MainApp() {
     return () => window.removeEventListener('keydown', onKeyDown, true)
   }, [
     backupOpen,
+    comparePickerOpen,
     externalChange,
     openNote,
     paletteOpen,
@@ -1700,6 +1840,8 @@ function MainApp() {
         count={visibleNotes.length}
         notes={visibleNotes}
         selectedPath={selectedPath}
+        comparePath={comparePath}
+        onCompare={openCompare}
         onSelect={(path) => {
           setKeyIndex(null)
           void openNote(path)
@@ -1723,50 +1865,86 @@ function MainApp() {
       />
 
       {selectedPath ? (
-        <div className="editor-area">
-          <NoteEditor
-            key={`${selectedPath}:${editorNonce}`}
-            ref={editorRef}
-            path={selectedPath}
-            spaceName={editorSpace}
-            title={editorTitle}
-            initialContent={selectedContent}
-            onSave={(content) => saveCurrent(selectedPath, content)}
-            onExtract={extractSelection}
-            onSplit={splitNote}
-            onTrash={() => void trashCurrent()}
-            onOpenLink={openLink}
-            onCreateLink={createLinkedNote}
-            onError={showToast}
-            notes={notes}
-            tagSuggestions={allTags}
-            onTagFilter={toggleTagFilter}
-            externalChange={externalChange?.path === selectedPath}
-            backlinksOpen={backlinksOpen}
-            backlinkCount={backlinks.length}
-            onToggleBacklinks={() => setBacklinksOpen((value) => !value)}
-            onExportPdf={() => setPdfExportOpen(true)}
-            onOpenTimeline={openTimeline}
-            showRelatedNotes={settings.showRelatedNotes}
-            onOpenNote={(path) => void openNote(path)}
-          />
-          {backlinksOpen ? (
+        <div
+          ref={workspaceRef}
+          className={`workspace${comparePath ? ' has-compare' : ''}`}
+        >
+          <div className="editor-area">
+            <NoteEditor
+              key={`${selectedPath}:${editorNonce}`}
+              ref={editorRef}
+              path={selectedPath}
+              spaceName={editorSpace}
+              title={editorTitle}
+              initialContent={selectedContent}
+              onSave={(content) => saveCurrent(selectedPath, content)}
+              onExtract={extractSelection}
+              onSplit={splitNote}
+              onTrash={() => void trashCurrent()}
+              onOpenLink={openLink}
+              onCreateLink={createLinkedNote}
+              onError={showToast}
+              notes={notes}
+              tagSuggestions={allTags}
+              onTagFilter={toggleTagFilter}
+              externalChange={externalChange?.path === selectedPath}
+              backlinksOpen={backlinksOpen}
+              backlinkCount={backlinks.length}
+              onToggleBacklinks={() => setBacklinksOpen((value) => !value)}
+              onExportPdf={() => setPdfExportOpen(true)}
+              onOpenTimeline={openTimeline}
+              showRelatedNotes={settings.showRelatedNotes}
+              onOpenNote={(path) => void openNote(path)}
+              onCompare={() => setComparePickerOpen(true)}
+              compareOpen={Boolean(comparePath)}
+            />
+            {backlinksOpen ? (
+              <>
+                <button
+                  type="button"
+                  className="backlinks-scrim"
+                  aria-label="Fermer les liens entrants"
+                  onClick={closeBacklinks}
+                />
+                <BacklinksPanel
+                  noteTitle={editorTitle}
+                  noteBase={editorBase}
+                  entries={backlinks}
+                  loading={backlinksLoading}
+                  error={backlinksError}
+                  onOpen={openBacklink}
+                  onRefresh={() => setBacklinksRevision((value) => value + 1)}
+                  onClose={closeBacklinks}
+                />
+              </>
+            ) : null}
+          </div>
+          {comparePath ? (
             <>
-              <button
-                type="button"
-                className="backlinks-scrim"
-                aria-label="Fermer les liens entrants"
-                onClick={closeBacklinks}
+              <div
+                className="compare-splitter"
+                role="separator"
+                aria-orientation="vertical"
+                aria-label="Redimensionner le panneau de comparaison"
+                tabIndex={0}
+                onPointerDown={resizeCompare}
+                onKeyDown={nudgeCompare}
               />
-              <BacklinksPanel
-                noteTitle={editorTitle}
-                noteBase={editorBase}
-                entries={backlinks}
-                loading={backlinksLoading}
-                error={backlinksError}
-                onOpen={openBacklink}
-                onRefresh={() => setBacklinksRevision((value) => value + 1)}
-                onClose={closeBacklinks}
+              <NoteComparePane
+                key={comparePath}
+                title={compareSummary?.title || baseFromPath(comparePath)}
+                space={compareSummary?.space ?? spaceOfPath(comparePath)}
+                content={compareContent}
+                loading={compareLoading}
+                error={compareError}
+                ratio={compareRatio}
+                onOpen={() => {
+                  const target = comparePath
+                  setComparePath(null)
+                  void openNote(target)
+                }}
+                onClose={closeCompare}
+                onLink={openCompareLink}
               />
             </>
           ) : null}
@@ -1836,6 +2014,18 @@ function MainApp() {
           onToggleRelatedNotes={() =>
             changeSettings({ ...settings, showRelatedNotes: !settings.showRelatedNotes })
           }
+          comparePath={comparePath}
+          onCompareWith={() => setComparePickerOpen(true)}
+          onCloseCompare={closeCompare}
+        />
+      ) : null}
+
+      {comparePickerOpen && selectedPath ? (
+        <ComparePicker
+          notes={notes}
+          selectedPath={selectedPath}
+          onPick={openCompare}
+          onClose={() => setComparePickerOpen(false)}
         />
       ) : null}
 

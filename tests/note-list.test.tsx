@@ -311,3 +311,21 @@ describe('NoteList — glisser-déposer et navigation', () => {
     expect(card('Bob')).toHaveClass('is-keynav')
   })
 })
+
+describe('NoteList — comparaison', () => {
+  it('compare une note avec Alt + clic sans l’ouvrir', () => {
+    const props = renderList({ onCompare: vi.fn() })
+
+    fireEvent.click(card('Bob'), { altKey: true })
+
+    expect(props.onCompare).toHaveBeenCalledWith(bob.path)
+    expect(props.onSelect).not.toHaveBeenCalled()
+  })
+
+  it('signale la note affichée en comparaison', () => {
+    renderList({ comparePath: bob.path, onCompare: vi.fn() })
+
+    expect(card('Bob')).toHaveClass('is-compared')
+    expect(screen.getByText('Comparée')).toBeInTheDocument()
+  })
+})

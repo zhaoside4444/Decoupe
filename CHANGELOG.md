@@ -3,6 +3,17 @@
 Toutes les évolutions notables de Découpe sont consignées dans ce fichier.
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [Unreleased]
+
+### Ajouté
+
+- **Comparer deux notes côte à côte** : seconde note en lecture seule à côté de la note active, avec le même rendu que l'éditeur (tableaux, listes de tâches, images, wiki-liens).
+  - Ouverture par `Alt + clic` sur une carte, bouton dans l'en-tête de l'éditeur ou palette de commandes (`Ctrl + K`).
+  - Séparateur redimensionnable à la souris ou au clavier, largeur mémorisée (`decoupe.compareRatio`).
+  - Wiki-liens ouverts dans le panneau comparé ; action « Ouvrir » pour basculer la note comparée dans l'éditeur.
+  - Panneaux empilés sous 1280 pixels de large ; fermeture automatique si la note comparée devient active, est supprimée ou change de vault.
+  - La comparaison est volontairement limitée à deux notes, sans diff mot à mot ni défilement synchronisé.
+
 ## [1.0.0] — 2026-11-03
 
 Première version publique.

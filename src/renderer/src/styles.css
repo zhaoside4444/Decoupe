@@ -1238,6 +1238,25 @@ button {
   border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
 }
 
+.note-card.is-compared {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+}
+
+.note-compare-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 9.5px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
 .note-pin {
   display: inline-flex;
   margin-right: 5px;
@@ -1403,6 +1422,139 @@ button {
 
 .editor-area > .editor-pane {
   flex: 1 1 auto;
+}
+
+/* ---------- Comparaison de deux notes ---------- */
+
+.workspace {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace > .editor-area {
+  flex: 1 1 0;
+}
+
+.compare-splitter {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 7px;
+  width: 7px;
+  margin-left: -3px;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.compare-splitter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 1px;
+  background: var(--line);
+  transition: background 0.12s ease, width 0.12s ease, left 0.12s ease;
+}
+
+.compare-splitter:hover::after,
+.compare-splitter:focus-visible::after,
+body.is-resizing-compare .compare-splitter::after {
+  left: 2px;
+  width: 3px;
+  background: color-mix(in srgb, var(--accent) 55%, var(--line-strong));
+}
+
+.compare-splitter:focus-visible {
+  outline: none;
+}
+
+body.is-resizing-compare {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.compare-pane {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-left: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 88%, var(--bg-elev));
+}
+
+.compare-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px 9px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-elev);
+}
+
+.compare-head .crumb {
+  flex: 1;
+}
+
+.compare-head .crumb span:first-child {
+  max-width: 90px;
+}
+
+.compare-badge {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.compare-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.compare-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 38px 32px 100px;
+}
+
+.compare-root {
+  min-height: 100%;
+}
+
+.compare-root .ProseMirror {
+  caret-color: transparent;
+  cursor: default;
+}
+
+.compare-status {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+.compare-status.is-error {
+  color: var(--danger);
+}
+
+.compare-picker .palette-list {
+  max-height: 340px;
+}
+
+.compare-picker-row .palette-label {
+  flex: 1;
 }
 
 .editor-pane {
@@ -4410,6 +4562,26 @@ button {
     z-index: 45;
     width: min(312px, 86%);
     box-shadow: -18px 0 38px color-mix(in srgb, #1c1915 18%, transparent);
+  }
+}
+
+/* Fenêtres étroites : les deux notes s'empilent, le séparateur disparaît. */
+@media (max-width: 1279px) {
+  .workspace.has-compare {
+    flex-direction: column;
+  }
+
+  .workspace.has-compare .compare-splitter {
+    display: none;
+  }
+
+  .workspace.has-compare .compare-pane {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .compare-page {
+    padding: 26px 22px 70px;
   }
 }
 

@@ -35,8 +35,7 @@ import { history, redoCommand, undoCommand } from '@milkdown/kit/plugin/history'
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { $prose, callCommand, replaceAll } from '@milkdown/kit/utils'
 import { lift, wrapIn } from '@milkdown/kit/prose/commands'
-import { Plugin, PluginKey, Selection, TextSelection } from '@milkdown/kit/prose/state'
-import { Decoration, DecorationSet } from '@milkdown/kit/prose/view'
+import { Selection, TextSelection } from '@milkdown/kit/prose/state'
 import { Fragment, type Node as PMNode } from '@milkdown/kit/prose/model'
 import type { Ctx } from '@milkdown/kit/ctx'
 import {
@@ -47,6 +46,7 @@ import {
   ChevronDown,
   ChevronUp,
   Code,
+  Columns2,
   Download,
   FileText,
   Italic,
@@ -81,6 +81,7 @@ import {
 import { findPlainMentions, groupMentions } from '@shared/mentions'
 import { findRelatedNotes } from '@shared/related'
 import { restoreFocusIfLost } from '../util'
+import { fixVaultImages, wikiLinkPlugin } from '../milkdown-note'
 import {
   hasExactWikiNote,
   suggestWikiNotes,
@@ -125,6 +126,8 @@ interface NoteEditorProps {
   onOpenTimeline?: () => void
   showRelatedNotes?: boolean
   onOpenNote?: (path: string) => void
+  onCompare?: () => void
+  compareOpen?: boolean
 }
 
 export interface NoteEditorHandle {
@@ -198,35 +201,6 @@ const EMPTY_FORMAT: FormatState = {
   codeBlock: false,
   table: null
 }
-
-const wikiLinkPlugin = $prose(
-  () =>
-    new Plugin({
-      key: new PluginKey('decoupe-wiki-links'),
-      props: {
-        decorations(state) {
-          const decorations: Decoration[] = []
-          state.doc.descendants((node, pos) => {
-            if (!node.isText || !node.text) return
-            const regex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g
-            let match: RegExpExecArray | null
-            while ((match = regex.exec(node.text))) {
-              const from = pos + match.index
-              const to = from + match[0].length
-              decorations.push(
-                Decoration.inline(from, to, {
-                  class: 'wiki-link',
-                  'data-target': match[1].trim(),
-                  title: match[2]?.trim() || match[1].trim()
-                })
-              )
-            }
-          })
-          return DecorationSet.create(state.doc, decorations)
-        }
-      }
-    })
-)
 
 const tablePaddingPlugin = $prose(() => createTablePaddingPlugin())
 const noteSearchPlugin = $prose(() => createNoteSearchPlugin())
@@ -349,7 +323,9 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
       onExportPdf,
       onOpenTimeline,
       showRelatedNotes = true,
-  onOpenNote
+  onOpenNote,
+  onCompare,
+  compareOpen = false
   },
   ref
 ) {
@@ -746,19 +722,7 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
   }, [autocomplete])
 
   function fixImages(): void {
-    const root = rootRef.current
-    if (!root) return
-    root.querySelectorAll('img').forEach((img) => {
-      const raw = img.getAttribute('src') ?? ''
-      if (!raw || raw.startsWith('vault://') || raw.startsWith('data:')) return
-      if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return
-      const encoded = raw
-        .split('/')
-        .map((segment) => encodeURIComponent(segment))
-        .join('/')
-      img.src = `vault://files/${encoded}`
-      img.loading = 'lazy'
-    })
+    fixVaultImages(rootRef.current)
   }
 
   function focusEnd(): void {
@@ -1509,6 +1473,18 @@ export const NoteEditor = forwardRef<NoteEditorHandle, NoteEditorProps>(function
           {saveState === 'saved' ? 'Enregistré' : saveState === 'saving' ? 'Enregistrement…' : 'Modifié'}
         </div>
         <div className="head-actions">
+          {onCompare ? (
+            <button
+              type="button"
+              className={`icon-btn${compareOpen ? ' is-active' : ''}`}
+              title="Comparer avec une note (Alt+clic dans la liste)"
+              aria-label="Comparer avec une note"
+              aria-pressed={compareOpen}
+              onClick={onCompare}
+            >
+              <Columns2 size={16} />
+            </button>
+          ) : null}
           <button
             type="button"
             className={`icon-btn${backlinksOpen ? ' is-active' : ''}`}

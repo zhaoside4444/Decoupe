@@ -124,6 +124,17 @@ describe('NoteEditor — en-tête', () => {
     expect(screen.getByRole('button', { name: 'Exporter en PDF' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Timeline narrative' })).not.toBeInTheDocument()
   })
+
+  it('propose d’ouvrir la comparaison quand l’action est fournie', async () => {
+    const user = userEvent.setup()
+    const props = renderEditor({ onCompare: vi.fn(), compareOpen: false })
+
+    const button = screen.getByRole('button', { name: 'Comparer avec une note' })
+    expect(button).toHaveAttribute('aria-pressed', 'false')
+
+    await user.click(button)
+    expect(props.onCompare).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('NoteEditor — tags', () => {

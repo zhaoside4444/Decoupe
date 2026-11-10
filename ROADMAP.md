@@ -202,15 +202,17 @@
 
 ## Phase 6 — Évolutions après la 1.0.0
 
-> Planifiées les 7 et 9 novembre 2026. Rien n’est implémenté : la 1.0.0 reste gelée jusqu’à sa validation manuelle et sa publication.
+> Planifiées les 7 et 9 novembre 2026. La section 20 (comparaison) est implémentée ; les autres chantiers restent à faire.
 
 ### 20. Comparer deux notes côte à côte
-- [ ] Afficher une seconde note en lecture seule à côté de la note active.
-- [ ] Choisir la note comparée par `Ctrl + clic`, par la palette de commandes ou depuis l’en-tête de l’éditeur.
-- [ ] Ajouter un séparateur redimensionnable et mémoriser la largeur des panneaux.
-- [ ] Empiler les panneaux sur les fenêtres étroites et proposer une action « Fermer la comparaison ».
-- [ ] Réutiliser le rendu de l’éditeur (tableaux, listes de tâches, images, wiki-liens) sans dupliquer les écouteurs globaux.
-- [ ] Laisser hors périmètre : diff mot à mot, défilement synchronisé, comparaison de plus de deux notes.
+- [x] Afficher une seconde note en lecture seule à côté de la note active.
+- [x] Choisir la note comparée par `Alt + clic`, par la palette de commandes ou depuis l’en-tête de l’éditeur.
+- [x] Ajouter un séparateur redimensionnable et mémoriser la largeur des panneaux.
+- [x] Empiler les panneaux sur les fenêtres étroites et proposer une action « Fermer la comparaison ».
+- [x] Réutiliser le rendu de l’éditeur (tableaux, listes de tâches, images, wiki-liens) sans dupliquer les écouteurs globaux.
+- [x] Laisser hors périmètre : diff mot à mot, défilement synchronisé, comparaison de plus de deux notes.
+
+**Implémenté** — `milkdown-note.ts` partage les greffons de l’éditeur, `NoteComparePane` crée un Milkdown en lecture seule (`editable: false` + `filterTransaction`), `ComparePicker` fournit le choix de note. La largeur est bornée entre 28 % et 68 % et mémorisée dans `localStorage` (`decoupe.compareRatio`).
 
 **Effort : M** — Environ 2 à 3 jours, tests et documentation compris. Risque faible : la note comparée est en lecture seule, donc la sauvegarde, les conflits externes et la recherche dans la note restent liés à la seule note active. Une version ultérieure pourra rendre les deux panneaux éditables.
 
@@ -277,7 +279,7 @@
 11. [x] Timeline narrative, exports PNG/PDF et confort de la barre latérale.
 12. [x] Distribution technique : installateur NSIS, README, BUILD.md, licence MIT et CI.
 13. [ ] Signature de code et première release publique.
-14. [ ] Comparer deux notes côte à côte — 1.1.
+14. [x] Comparer deux notes côte à côte — 1.1.
 15. [ ] Ordre manuel des cartes d’un espace — 1.2.
 16. [ ] Boutons de tons pinyin — confort, sans version cible ; PowerToys reste la solution recommandée en attendant.
 17. [ ] Prise de notes multilingue — réflexion à découper avant toute implémentation.
