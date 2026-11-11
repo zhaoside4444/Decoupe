@@ -275,7 +275,7 @@
 - [x] Vérifier les interactions avec la comparaison, les liens entrants, la timeline et les fenêtres étroites.
 - [x] Ne pas casser la navigation clavier ni la palette de commandes (`Ctrl + K`).
 
-**Implémenté le 11 novembre 2026** — La barre latérale et la liste des notes se masquent indépendamment depuis leur en-tête, par `Ctrl + Maj + B` / `Ctrl + Maj + L`, ou depuis la palette `Ctrl + K`. Un rail discret sur le bord gauche de l’éditeur permet de rouvrir chaque zone masquée. L’état est mémorisé dans les réglages de l’interface. L’éditeur occupe la largeur restante, mais le texte reste limité par la largeur de lecture réglable. La navigation clavier de la liste est suspendue quand elle est masquée, sans affecter la palette, la comparaison, les liens entrants ni la timeline.
+**Implémenté le 11 novembre 2026** — La barre latérale et la liste des notes se masquent indépendamment depuis un bouton dans le pied de la barre latérale et une poignée sur le bord de la liste, par `Ctrl + Maj + B` / `Ctrl + Maj + L`, ou depuis la palette `Ctrl + K`. Un rail discret sur le bord gauche de l’éditeur permet de rouvrir chaque zone masquée. L’état est mémorisé dans les réglages de l’interface. L’éditeur occupe la largeur restante, mais le texte reste limité par la largeur de lecture réglable. La navigation clavier de la liste est suspendue quand elle est masquée, sans affecter la palette, la comparaison, les liens entrants ni la timeline.
 
 **Effort : S/M** — Environ 1 à 2 jours, tests et documentation compris. Risque faible : il s’agit surtout de disposition et de préférences d’affichage.
 
