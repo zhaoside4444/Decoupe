@@ -19,6 +19,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) 
   - Ordre mémorisé dans `.decoupe/order.json`, avec réconciliation des notes ajoutées ou supprimées.
   - Le réordonnancement est désactivé pendant une recherche et en vue « Toutes les notes ».
   - La fusion de notes passe à `Alt + glisser` ; le glisser simple ne fusionne plus.
+- **Masquer les panneaux (mode immersion)** : la barre latérale et la liste des notes se masquent séparément.
+  - Boutons dédiés dans chaque zone et rail discret pour les rouvrir.
+  - Raccourcis `Ctrl + Maj + B` et `Ctrl + Maj + L`, plus actions dans la palette `Ctrl + K`.
+  - État mémorisé entre les sessions ; l'éditeur utilise la largeur restante sans dépasser la largeur de lecture réglée.
 
 ### Modifié
 

@@ -153,7 +153,8 @@ describe('CommandPalette', () => {
     expect(screen.getByText('Aucun résultat.')).toBeInTheDocument()
   })
 
-  it('propose de comparer la note ouverte', async () => {    const user = userEvent.setup()
+  it('propose de comparer la note ouverte', async () => {
+    const user = userEvent.setup()
     const props = renderPalette({ onCompareWith: vi.fn() })
 
     await user.type(paletteInput(), 'Comparer avec')
@@ -161,6 +162,25 @@ describe('CommandPalette', () => {
 
     expect(props.onCompareWith).toHaveBeenCalled()
     expect(props.onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('propose de masquer ou réafficher les panneaux', async () => {
+    const user = userEvent.setup()
+    const props = renderPalette({
+      sidebarCollapsed: true,
+      listCollapsed: false,
+      onToggleSidebar: vi.fn(),
+      onToggleList: vi.fn()
+    })
+
+    await user.type(paletteInput(), 'barre latérale')
+    await user.click(screen.getByRole('button', { name: /Afficher la barre latérale/ }))
+    expect(props.onToggleSidebar).toHaveBeenCalledTimes(1)
+
+    await user.clear(paletteInput())
+    await user.type(paletteInput(), 'liste des notes')
+    await user.click(screen.getByRole('button', { name: /Masquer la liste des notes/ }))
+    expect(props.onToggleList).toHaveBeenCalledTimes(1)
   })
 
   it('propose de fermer la comparaison en cours', async () => {

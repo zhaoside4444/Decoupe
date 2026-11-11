@@ -15,6 +15,7 @@ Le vault reste un simple dossier de fichiers `.md` : il est lisible dans n'impor
 - **Recherche dans la note** : `Ctrl + F`, compteur `n / total`, occurrence suivante ou précédente, surlignage, insensible à la casse et aux accents.
 - **Édition** : images collées, tableaux insérés et modifiés sans syntaxe (lignes, colonnes, texte avant et après), extraction, scission, fusion par `Alt + glisser`, sélection multiple.
 - **Comparaison** : seconde note en lecture seule côte à côte (`Alt + clic`), séparateur redimensionnable et panneaux empilés sur les fenêtres étroites.
+- **Mode immersion** : barre latérale et liste des notes masquables séparément, avec raccourcis et état mémorisé.
 - **Corbeille** pour les notes et les espaces, avec restauration et purge définitive.
 - **Sauvegardes locales** : instantanés, planification, rétention, export et restauration.
 - **Détection des modifications externes** : garde d'écriture, rechargement ou conservation locale.

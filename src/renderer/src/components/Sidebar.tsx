@@ -7,6 +7,7 @@ import {
   FolderOpen,
   Inbox,
   Layers,
+  PanelLeftClose,
   Pencil,
   Plus,
   Scissors,
@@ -68,6 +69,7 @@ interface SidebarProps {
   onDateFilter: (date: string | null) => void
   onRenameTag: (from: string, to: string) => Promise<void>
   onDeleteTag: (tag: string) => Promise<void>
+  onCollapse?: () => void
 }
 
 export function Sidebar({
@@ -96,7 +98,8 @@ export function Sidebar({
   onTagFilter,
   onDateFilter,
   onRenameTag,
-  onDeleteTag
+  onDeleteTag,
+  onCollapse
 }: SidebarProps) {
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
@@ -716,9 +719,22 @@ export function Sidebar({
         </button>
 
         <div className="sidebar-foot">
-          <button type="button" className="link-btn" onClick={onReveal}>
-            <FolderOpen size={12} /> Ouvrir le dossier des notes
-          </button>
+          <div className="sidebar-foot-row">
+            <button type="button" className="link-btn" onClick={onReveal}>
+              <FolderOpen size={12} /> Ouvrir le dossier des notes
+            </button>
+            {onCollapse ? (
+              <button
+                type="button"
+                className="icon-btn sidebar-collapse"
+                title="Masquer la barre latérale (Ctrl+Maj+B)"
+                aria-label="Masquer la barre latérale"
+                onClick={onCollapse}
+              >
+                <PanelLeftClose size={14} />
+              </button>
+            ) : null}
+          </div>
           <span className="vault-path" title={vault.path}>
             {vault.path}
           </span>

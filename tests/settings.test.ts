@@ -27,13 +27,17 @@ describe('validation et parsing des réglages UI', () => {
       theme: 'mint',
       defaultSpace: 'Projet',
       editorWidth: 850,
-      showRelatedNotes: false
+      showRelatedNotes: false,
+      sidebarCollapsed: true,
+      listCollapsed: true
     })
     expect(parsed).toEqual({
       theme: 'mint',
       defaultSpace: 'Projet',
       editorWidth: 850,
-      showRelatedNotes: false
+      showRelatedNotes: false,
+      sidebarCollapsed: true,
+      listCollapsed: true
     })
 
     const clamped = parseUiSettings({
@@ -43,6 +47,14 @@ describe('validation et parsing des réglages UI', () => {
     expect(clamped.theme).toBe('paper')
     expect(clamped.editorWidth).toBe(1200)
     expect(clamped.showRelatedNotes).toBe(true)
+    expect(clamped.sidebarCollapsed).toBe(false)
+    expect(clamped.listCollapsed).toBe(false)
+  })
+
+  it('ignore les états de panneaux non booléens', () => {
+    const parsed = parseUiSettings({ sidebarCollapsed: 'oui', listCollapsed: 1 })
+    expect(parsed.sidebarCollapsed).toBe(false)
+    expect(parsed.listCollapsed).toBe(false)
   })
 
   it('inclut 6 thèmes pastels carnets de notes', () => {

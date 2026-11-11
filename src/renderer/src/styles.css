@@ -171,10 +171,46 @@ button {
 /* ---------- Layout ---------- */
 
 .app {
+  --sidebar-w: 236px;
+  --list-w: 302px;
   display: grid;
-  grid-template-columns: 236px 302px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-w) var(--list-w) minmax(0, 1fr);
   height: 100vh;
   min-width: 0;
+}
+
+.app.is-sidebar-hidden {
+  grid-template-columns: var(--list-w) minmax(0, 1fr);
+}
+
+.app.is-list-hidden {
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+}
+
+.app.is-sidebar-hidden.is-list-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Rail discret pour rouvrir les panneaux masqués. */
+.layout-restore {
+  display: flex;
+  flex: 0 0 34px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-right: 1px solid var(--line);
+  background: var(--bg-panel);
+}
+
+.layout-restore .icon-btn {
+  width: 26px;
+  height: 26px;
+  color: var(--ink-faint);
+}
+
+.empty-workspace > .empty-editor {
+  flex: 1 1 auto;
 }
 
 .boot {
@@ -876,6 +912,23 @@ button {
   border-top: 1px solid var(--line);
 }
 
+.sidebar-foot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-foot-row .link-btn {
+  min-width: 0;
+}
+
+.sidebar-collapse {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+}
+
 .link-btn {
   display: inline-flex;
   align-items: center;
@@ -907,12 +960,39 @@ button {
 /* ---------- Note list ---------- */
 
 .note-list {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
   min-width: 0;
   background: var(--bg);
   border-right: 1px solid var(--line);
+}
+
+.list-collapse {
+  position: absolute;
+  top: 14px;
+  right: -12px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg-elev);
+  color: var(--ink-faint);
+  box-shadow: var(--shadow-soft);
+  opacity: 0.72;
+  transition: opacity 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+
+.list-collapse:hover,
+.list-collapse:focus-visible {
+  opacity: 1;
+  color: var(--accent-ink);
+  background: var(--bg-hover);
 }
 
 .list-head {
@@ -4589,7 +4669,8 @@ body.is-resizing-compare {
 
 @media (max-width: 1080px) {
   .app {
-    grid-template-columns: 204px 262px minmax(0, 1fr);
+    --sidebar-w: 204px;
+    --list-w: 262px;
   }
   .editor-page {
     padding: 38px 34px 100px;
@@ -4598,7 +4679,8 @@ body.is-resizing-compare {
 
 @media (max-width: 900px) {
   .app {
-    grid-template-columns: 188px 232px minmax(0, 1fr);
+    --sidebar-w: 188px;
+    --list-w: 232px;
   }
   .editor-page {
     padding: 30px 24px 90px;
@@ -4640,6 +4722,14 @@ body.is-resizing-compare {
   .workspace.has-compare .compare-pane {
     border-left: 0;
     border-top: 1px solid var(--line);
+  }
+
+  .workspace.has-compare > .layout-restore {
+    flex: 0 0 auto;
+    flex-direction: row;
+    padding: 4px 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .compare-page {

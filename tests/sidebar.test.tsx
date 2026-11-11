@@ -43,6 +43,7 @@ function renderSidebar(overrides: Partial<SidebarProps> = {}) {
     onDateFilter: vi.fn(),
     onRenameTag: vi.fn(async () => {}),
     onDeleteTag: vi.fn(async () => {}),
+    onCollapse: vi.fn(),
     ...overrides
   }
   render(<Sidebar {...props} />)
@@ -221,6 +222,16 @@ describe('Sidebar — menu des dossiers', () => {
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
     expect(trigger).toHaveFocus()
+  })
+})
+
+describe('Sidebar — affichage', () => {
+  it('masque la barre latérale depuis le bouton dédié', async () => {
+    const user = userEvent.setup()
+    const props = renderSidebar()
+
+    await user.click(screen.getByRole('button', { name: 'Masquer la barre latérale' }))
+    expect(props.onCollapse).toHaveBeenCalledTimes(1)
   })
 })
 

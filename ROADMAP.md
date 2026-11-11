@@ -202,7 +202,7 @@
 
 ## Phase 6 — Évolutions après la 1.0.0
 
-> Planifiées les 7 et 9 novembre 2026. Les sections 20 (comparaison) et 21 (ordre manuel) sont implémentées ; les autres chantiers restent à faire.
+> Planifiées les 7 et 9 novembre 2026. Les sections 20 (comparaison), 21 (ordre manuel) et 24 (mode immersion) sont implémentées ; les autres chantiers restent à faire.
 
 ### 20. Comparer deux notes côte à côte
 - [x] Afficher une seconde note en lecture seule à côté de la note active.
@@ -267,15 +267,19 @@
 **Effort : inconnu** — À découper après des tests réels dans plusieurs écritures. Les chantiers les moins coûteux sont les noms de fichiers Unicode, la normalisation de la recherche globale et le `dir="auto"` ; le tri par pinyin et la détection de mentions CJK demandent plus de conception.
 
 ### 24. Mode immersion : masquer la barre latérale et la liste des notes
-- [ ] Ajouter des boutons pour masquer puis réafficher la barre latérale (espaces, recherche) et la liste des notes.
-- [ ] Prévoir des raccourcis clavier et des entrées dans la palette de commandes pour les deux zones.
-- [ ] Étendre l’éditeur à la largeur restante, sans dépasser la largeur de lecture confortable déjà réglable.
-- [ ] Garder un accès rapide aux zones masquées : bouton discret, survol du bord ou raccourci.
-- [ ] Mémoriser l’état ouvert/fermé, ou le réinitialiser à chaque session.
-- [ ] Vérifier les interactions avec la comparaison, les liens entrants, la timeline et les fenêtres étroites.
-- [ ] Ne pas casser la navigation clavier ni la palette de commandes (`Ctrl + K`).
+- [x] Ajouter des boutons pour masquer puis réafficher la barre latérale (espaces, recherche) et la liste des notes.
+- [x] Prévoir des raccourcis clavier et des entrées dans la palette de commandes pour les deux zones.
+- [x] Étendre l’éditeur à la largeur restante, sans dépasser la largeur de lecture confortable déjà réglable.
+- [x] Garder un accès rapide aux zones masquées : bouton discret, survol du bord ou raccourci.
+- [x] Mémoriser l’état ouvert/fermé, ou le réinitialiser à chaque session.
+- [x] Vérifier les interactions avec la comparaison, les liens entrants, la timeline et les fenêtres étroites.
+- [x] Ne pas casser la navigation clavier ni la palette de commandes (`Ctrl + K`).
 
-**Effort : S/M** — Environ 1 à 2 jours, tests et documentation compris. Risque faible : il s’agit surtout de disposition et de préférences d’affichage. Décisions ouvertes : masquer les deux zones d’un coup (« mode concentration ») ou indépendamment ; état persistant par vault ou par session ; révélation temporaire au survol ou uniquement par action explicite.
+**Implémenté le 11 novembre 2026** — La barre latérale et la liste des notes se masquent indépendamment depuis leur en-tête, par `Ctrl + Maj + B` / `Ctrl + Maj + L`, ou depuis la palette `Ctrl + K`. Un rail discret sur le bord gauche de l’éditeur permet de rouvrir chaque zone masquée. L’état est mémorisé dans les réglages de l’interface. L’éditeur occupe la largeur restante, mais le texte reste limité par la largeur de lecture réglable. La navigation clavier de la liste est suspendue quand elle est masquée, sans affecter la palette, la comparaison, les liens entrants ni la timeline.
+
+**Effort : S/M** — Environ 1 à 2 jours, tests et documentation compris. Risque faible : il s’agit surtout de disposition et de préférences d’affichage.
+
+> **Décision** : masquage indépendant des deux zones (pas de « mode concentration » imposé), état persistant dans les réglages, et réaffichage par bouton discret plus raccourci, sans révélation au survol.
 
 ## Séquence recommandée
 
@@ -296,7 +300,7 @@
 15. [x] Ordre manuel des cartes d’un espace — 1.2.
 16. [ ] Boutons de tons pinyin — confort, sans version cible ; PowerToys reste la solution recommandée en attendant.
 17. [ ] Prise de notes multilingue — réflexion à découper avant toute implémentation.
-18. [ ] Mode immersion : masquer la barre latérale et/ou la liste des notes — confort, sans version cible.
+18. [x] Mode immersion : masquer la barre latérale et/ou la liste des notes — confort, sans version cible.
 
 ## Décisions à prendre
 
@@ -309,5 +313,5 @@
 - Ordre manuel des cartes : **décision** `.decoupe/order.json`, épinglées en tête avec tri manuel dans chaque groupe, mode désactivé en vue « Toutes les notes » et pendant une recherche.
 - Tons du pinyin : **décision** rester sur PowerToys pour l’instant ; les boutons intégrés restent une piste de confort sans version cible.
 - Prise de notes multilingue : **à définir** — quelles écritures doivent être garanties (chinois, japonais, coréen, arabe, autres) et jusqu’où vont les équivalences de recherche et de tri.
-- Mode immersion : **à trancher** — masquer les deux zones ensemble ou indépendamment, et mémoriser l’état entre les sessions.
+- Mode immersion : **décision** — masquage indépendant des deux zones, état mémorisé entre les sessions, réaffichage par bouton discret ou raccourci (pas de révélation au survol).
 - Noms de fichiers : **à trancher** entre conserver l’ASCII actuel et accepter les lettres Unicode dans les noms de notes.

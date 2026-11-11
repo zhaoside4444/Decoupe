@@ -15,6 +15,7 @@ import {
   Clock,
   Columns2,
   FolderInput,
+  PanelLeftClose,
   Pin,
   PinOff,
   Plus,
@@ -53,6 +54,7 @@ interface NoteListProps {
   onClearSearch: () => void
   onRemoveFilter: (kind: SearchFilterKind, value?: string) => void
   onTagClick: (tag: string) => void
+  onCollapse?: () => void
 }
 
 interface SearchFilterChip {
@@ -144,7 +146,8 @@ export function NoteList({
   onMerge,
   onClearSearch,
   onRemoveFilter,
-  onTagClick
+  onTagClick,
+  onCollapse
 }: NoteListProps) {
   const [mergeHover, setMergeHover] = useState<string | null>(null)
   const [dropLine, setDropLine] = useState<{ path: string; after: boolean } | null>(null)
@@ -441,6 +444,18 @@ export function NoteList({
           </button>
         </div>
       </header>
+
+      {onCollapse ? (
+        <button
+          type="button"
+          className="list-collapse"
+          title="Masquer la liste des notes (Ctrl+Maj+L)"
+          aria-label="Masquer la liste des notes"
+          onClick={onCollapse}
+        >
+          <PanelLeftClose size={14} />
+        </button>
+      ) : null}
 
       <div className="list-scroll" ref={listRef}>
         {activeSelection.length ? (

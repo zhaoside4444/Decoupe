@@ -124,6 +124,19 @@ Une seconde note peut rester ouverte en lecture seule à côté de la note activ
 
 ---
 
+## Masquer les panneaux (mode immersion)
+
+Pour écrire sans distraction, la barre latérale et la liste des notes peuvent être masquées séparément.
+
+- **Barre latérale** : bouton dans son en-tête, ou `Ctrl + Maj + B`.
+- **Liste des notes** : poignée discrète sur son bord droit, ou `Ctrl + Maj + L`.
+- Une fois une zone masquée, un rail discret apparaît sur le bord gauche de l'éditeur pour la rouvrir. Les mêmes actions sont disponibles dans la palette `Ctrl + K` (« Afficher la barre latérale », « Afficher la liste des notes »).
+- L'état ouvert ou masqué est mémorisé d'une session à l'autre.
+- L'éditeur occupe toute la largeur restante, mais le texte reste limité à la largeur de lecture réglée dans les Réglages.
+- La comparaison, les liens entrants et la timeline continuent de fonctionner. Quand la liste est masquée, les flèches du clavier ne parcourent plus des cartes invisibles ; la palette reste le moyen rapide d'ouvrir une note.
+
+---
+
 ## Commentaires
 
 Découpe ne masque pas encore les commentaires Markdown. Les deux formes courantes sont conservées dans le fichier, mais restent visibles dans l'éditeur et dans l'export PDF :
@@ -143,4 +156,6 @@ Ne les utilisez donc pas pour des remarques destinées à rester invisibles : el
 - Comparer avec une autre note : `Alt + clic` sur une carte de la liste
 - Réordonner la note ouverte en ordre manuel : `Alt + ↑` / `Alt + ↓`
 - Fusionner une note : `Alt + glisser` sur la note cible
+- Masquer ou afficher la barre latérale : `Ctrl + Maj + B`
+- Masquer ou afficher la liste des notes : `Ctrl + Maj + L`
 - Export PNG / PDF : boutons dans l'en-tête de la timeline

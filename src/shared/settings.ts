@@ -28,13 +28,17 @@ export interface UiSettings {
   defaultSpace: string
   editorWidth: number
   showRelatedNotes: boolean
+  sidebarCollapsed: boolean
+  listCollapsed: boolean
 }
 
 export const DEFAULT_UI_SETTINGS: UiSettings = {
   theme: 'paper',
   defaultSpace: 'auto',
   editorWidth: 730,
-  showRelatedNotes: true
+  showRelatedNotes: true,
+  sidebarCollapsed: false,
+  listCollapsed: false
 }
 
 export function isPastelThemeId(value: unknown): value is PastelThemeId {
@@ -58,7 +62,24 @@ export function parseUiSettings(raw: unknown): UiSettings {
       ? obj.showRelatedNotes
       : DEFAULT_UI_SETTINGS.showRelatedNotes
 
-  return { theme, defaultSpace, editorWidth, showRelatedNotes }
+  const sidebarCollapsed =
+    typeof obj.sidebarCollapsed === 'boolean'
+      ? obj.sidebarCollapsed
+      : DEFAULT_UI_SETTINGS.sidebarCollapsed
+
+  const listCollapsed =
+    typeof obj.listCollapsed === 'boolean'
+      ? obj.listCollapsed
+      : DEFAULT_UI_SETTINGS.listCollapsed
+
+  return {
+    theme,
+    defaultSpace,
+    editorWidth,
+    showRelatedNotes,
+    sidebarCollapsed,
+    listCollapsed
+  }
 }
 
 export function resolveInitialSpace(

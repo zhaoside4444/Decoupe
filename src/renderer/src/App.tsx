@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { List, PanelLeftOpen } from 'lucide-react'
 import type {
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent
@@ -968,6 +969,14 @@ function MainApp() {
     [openNote, refresh, showToast]
   )
 
+  const toggleSidebar = useCallback((): void => {
+    changeSettings({ ...settings, sidebarCollapsed: !settings.sidebarCollapsed })
+  }, [changeSettings, settings])
+
+  const toggleList = useCallback((): void => {
+    changeSettings({ ...settings, listCollapsed: !settings.listCollapsed })
+  }, [changeSettings, settings])
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.ctrlKey || event.metaKey) {
@@ -979,6 +988,14 @@ function MainApp() {
           event.preventDefault()
           event.stopPropagation()
           void openTimeline()
+        } else if (event.shiftKey && event.key.toLowerCase() === 'b') {
+          event.preventDefault()
+          event.stopPropagation()
+          toggleSidebar()
+        } else if (event.shiftKey && event.key.toLowerCase() === 'l') {
+          event.preventDefault()
+          event.stopPropagation()
+          toggleList()
         } else if (event.key.toLowerCase() === 'p') {
           event.preventDefault()
           event.stopPropagation()
@@ -994,7 +1011,7 @@ function MainApp() {
     }
     window.addEventListener('keydown', onKeyDown, true)
     return () => window.removeEventListener('keydown', onKeyDown, true)
-  }, [newNote, openTimeline])
+  }, [newNote, openTimeline, toggleList, toggleSidebar])
 
   const extractSelection = useCallback(
     async (selection: SelectionInfo): Promise<string | null> => {
@@ -1722,7 +1739,7 @@ function MainApp() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (paletteOpen || trashOpen || backupOpen || externalChange || settingsOpen) return
-      if (comparePickerOpen) return
+      if (comparePickerOpen || settings.listCollapsed) return
       const key = event.key
       if (key !== 'ArrowDown' && key !== 'ArrowUp' && key !== 'Enter') return
       const target = event.target as HTMLElement | null
@@ -1772,6 +1789,7 @@ function MainApp() {
     openNote,
     paletteOpen,
     search,
+    settings.listCollapsed,
     settingsOpen,
     trashOpen,
     visibleNotes
@@ -1879,78 +1897,121 @@ function MainApp() {
     )
   }
 
-  return (
-    <div className="app">
-      <Sidebar
-        vault={vault}
-        spaces={spaces}
-        notesInInbox={inboxCount}
-        totalNotes={notes.length}
-        activeSpace={activeSpace}
-        onSelectSpace={(space) => {
-          setActiveSpace(space)
-          setSearch('')
-          setSearchResults(null)
-        }}
-        onCreateSpace={createSpace}
-        onRenameSpace={renameSpace}
-        onTrashSpace={deleteSpace}
-        onMoveNote={(path, space) => void moveNote(path, space)}
-        onSwitchVault={(root) => void switchVault(root)}
-        onReveal={() => void revealVault()}
-        search={search}
-        onSearch={setSearch}
-        searchRef={searchRef}
-        trashCount={trashItems.length}
-        onOpenTrash={openTrash}
-        onOpenBackups={() => setBackupOpen(true)}
-        onOpenSettings={() => setSettingsOpen(true)}
-        onOpenTimeline={openTimeline}
-        tagStats={tagStats}
-        dateCounts={dateCounts}
-        onTagFilter={toggleTagFilter}
-        onDateFilter={setDateFilter}
-        onRenameTag={renameTag}
-        onDeleteTag={deleteTag}
-      />
+  const restoreRail =
+    settings.sidebarCollapsed || settings.listCollapsed ? (
+      <div
+        className="layout-restore"
+        role="group"
+        aria-label="Afficher les panneaux masqués"
+      >
+        {settings.sidebarCollapsed ? (
+          <button
+            type="button"
+            className="icon-btn"
+            title="Afficher la barre latérale (Ctrl+Maj+B)"
+            aria-label="Afficher la barre latérale"
+            onClick={toggleSidebar}
+          >
+            <PanelLeftOpen size={16} />
+          </button>
+        ) : null}
+        {settings.listCollapsed ? (
+          <button
+            type="button"
+            className="icon-btn"
+            title="Afficher la liste des notes (Ctrl+Maj+L)"
+            aria-label="Afficher la liste des notes"
+            onClick={toggleList}
+          >
+            <List size={16} />
+          </button>
+        ) : null}
+      </div>
+    ) : null
 
-      <NoteList
-        title={listTitle}
-        count={visibleNotes.length}
-        notes={visibleNotes}
-        selectedPath={selectedPath}
-        comparePath={comparePath}
-        onCompare={openCompare}
-        onSelect={(path) => {
-          setKeyIndex(null)
-          void openNote(path)
-        }}
-        keyNavIndex={keyIndex}
-        sortMode={effectiveSortMode}
-        manualSortDisabled={!manualSortAvailable}
-        onSortChange={changeSortMode}
-        onReorder={reorderNotes}
-        onMoveNote={moveNoteInList}
-        onTogglePin={(path) => void togglePin(path)}
-        spaces={spaces}
-        onBatchMove={(paths, space) => batchMove(paths, space)}
-        onBatchTag={(paths, tags) => batchTag(paths, tags)}
-        onBatchTrash={(paths) => batchTrash(paths)}
-        onNew={() => void newNote()}
-        onMerge={(source, target) => void mergeNotes(source, target)}
-        search={search}
-        onClearSearch={() => setSearch('')}
-        onRemoveFilter={(kind: SearchFilterKind, value?: string) =>
-          setSearch((previous) => removeSearchFilter(previous, kind, value))
-        }
-        onTagClick={toggleTagFilter}
-      />
+  return (
+    <div
+      className={`app${settings.sidebarCollapsed ? ' is-sidebar-hidden' : ''}${
+        settings.listCollapsed ? ' is-list-hidden' : ''
+      }`}
+    >
+      {settings.sidebarCollapsed ? null : (
+        <Sidebar
+          vault={vault}
+          spaces={spaces}
+          notesInInbox={inboxCount}
+          totalNotes={notes.length}
+          activeSpace={activeSpace}
+          onSelectSpace={(space) => {
+            setActiveSpace(space)
+            setSearch('')
+            setSearchResults(null)
+          }}
+          onCreateSpace={createSpace}
+          onRenameSpace={renameSpace}
+          onTrashSpace={deleteSpace}
+          onMoveNote={(path, space) => void moveNote(path, space)}
+          onSwitchVault={(root) => void switchVault(root)}
+          onReveal={() => void revealVault()}
+          search={search}
+          onSearch={setSearch}
+          searchRef={searchRef}
+          trashCount={trashItems.length}
+          onOpenTrash={openTrash}
+          onOpenBackups={() => setBackupOpen(true)}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenTimeline={openTimeline}
+          tagStats={tagStats}
+          dateCounts={dateCounts}
+          onTagFilter={toggleTagFilter}
+          onDateFilter={setDateFilter}
+          onRenameTag={renameTag}
+          onDeleteTag={deleteTag}
+          onCollapse={toggleSidebar}
+        />
+      )}
+
+      {settings.listCollapsed ? null : (
+        <NoteList
+          title={listTitle}
+          count={visibleNotes.length}
+          notes={visibleNotes}
+          selectedPath={selectedPath}
+          comparePath={comparePath}
+          onCompare={openCompare}
+          onSelect={(path) => {
+            setKeyIndex(null)
+            void openNote(path)
+          }}
+          keyNavIndex={keyIndex}
+          sortMode={effectiveSortMode}
+          manualSortDisabled={!manualSortAvailable}
+          onSortChange={changeSortMode}
+          onReorder={reorderNotes}
+          onMoveNote={moveNoteInList}
+          onTogglePin={(path) => void togglePin(path)}
+          spaces={spaces}
+          onBatchMove={(paths, space) => batchMove(paths, space)}
+          onBatchTag={(paths, tags) => batchTag(paths, tags)}
+          onBatchTrash={(paths) => batchTrash(paths)}
+          onNew={() => void newNote()}
+          onMerge={(source, target) => void mergeNotes(source, target)}
+          search={search}
+          onClearSearch={() => setSearch('')}
+          onRemoveFilter={(kind: SearchFilterKind, value?: string) =>
+            setSearch((previous) => removeSearchFilter(previous, kind, value))
+          }
+          onTagClick={toggleTagFilter}
+          onCollapse={toggleList}
+        />
+      )}
 
       {selectedPath ? (
         <div
           ref={workspaceRef}
           className={`workspace${comparePath ? ' has-compare' : ''}`}
         >
+          {restoreRail}
           <div className="editor-area">
             <NoteEditor
               key={`${selectedPath}:${editorNonce}`}
@@ -2032,7 +2093,10 @@ function MainApp() {
           ) : null}
         </div>
       ) : (
-        <EmptyEditor onNew={() => void newNote()} />
+        <div className="workspace empty-workspace">
+          {restoreRail}
+          <EmptyEditor onNew={() => void newNote()} />
+        </div>
       )}
 
       {trashOpen ? (
@@ -2100,6 +2164,10 @@ function MainApp() {
           comparePath={comparePath}
           onCompareWith={() => setComparePickerOpen(true)}
           onCloseCompare={closeCompare}
+          sidebarCollapsed={settings.sidebarCollapsed}
+          listCollapsed={settings.listCollapsed}
+          onToggleSidebar={toggleSidebar}
+          onToggleList={toggleList}
         />
       ) : null}
 

@@ -32,6 +32,10 @@ interface CommandPaletteProps {
   comparePath?: string | null
   onCompareWith?: () => void
   onCloseCompare?: () => void
+  sidebarCollapsed?: boolean
+  listCollapsed?: boolean
+  onToggleSidebar?: () => void
+  onToggleList?: () => void
 }
 
 interface PaletteEntry {
@@ -90,7 +94,11 @@ export function CommandPalette({
   onToggleRelatedNotes,
   comparePath = null,
   onCompareWith,
-  onCloseCompare
+  onCloseCompare,
+  sidebarCollapsed = false,
+  listCollapsed = false,
+  onToggleSidebar,
+  onToggleList
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
@@ -138,6 +146,34 @@ export function CommandPalette({
         label: 'Réglages…',
         run: onOpenSettings
       },
+      ...(onToggleSidebar
+        ? [
+            {
+              id: 'toggle-sidebar',
+              kind: 'action' as const,
+              group: 'Affichage',
+              label: sidebarCollapsed
+                ? 'Afficher la barre latérale'
+                : 'Masquer la barre latérale',
+              hint: 'Ctrl+Maj+B',
+              run: onToggleSidebar
+            }
+          ]
+        : []),
+      ...(onToggleList
+        ? [
+            {
+              id: 'toggle-list',
+              kind: 'action' as const,
+              group: 'Affichage',
+              label: listCollapsed
+                ? 'Afficher la liste des notes'
+                : 'Masquer la liste des notes',
+              hint: 'Ctrl+Maj+L',
+              run: onToggleList
+            }
+          ]
+        : []),
       ...(onOpenTimeline
         ? [
             {
@@ -267,6 +303,7 @@ export function CommandPalette({
   }, [
     comparePath,
     currentSpace,
+    listCollapsed,
     manualSortAvailable,
     onCloseCompare,
     onCompareWith,
@@ -275,10 +312,13 @@ export function CommandPalette({
     onOpenBackups,
     onOpenTrash,
     onSortChange,
+    onToggleList,
     onTogglePinCurrent,
+    onToggleSidebar,
     onTrashCurrent,
     selectedPinned,
     selectedPath,
+    sidebarCollapsed,
     spaces
   ])
 

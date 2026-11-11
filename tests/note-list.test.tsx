@@ -70,6 +70,7 @@ function renderList(overrides: Partial<Props> = {}) {
     onClearSearch: vi.fn(),
     onRemoveFilter: vi.fn(),
     onTagClick: vi.fn(),
+    onCollapse: vi.fn(),
     ...overrides
   }
   render(<NoteList {...props} />)
@@ -407,6 +408,13 @@ describe('NoteList — glisser-déposer et navigation', () => {
   it('met en évidence la carte atteinte au clavier', () => {
     renderList({ keyNavIndex: 1 })
     expect(card('Bob')).toHaveClass('is-keynav')
+  })
+
+  it('masque la liste depuis une poignée sur le bord', () => {
+    const props = renderList()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Masquer la liste des notes' }))
+    expect(props.onCollapse).toHaveBeenCalledTimes(1)
   })
 })
 
