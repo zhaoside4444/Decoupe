@@ -13,6 +13,16 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) 
   - Wiki-liens ouverts dans le panneau comparé ; action « Ouvrir » pour basculer la note comparée dans l'éditeur.
   - Panneaux empilés sous 1280 pixels de large ; fermeture automatique si la note comparée devient active, est supprimée ou change de vault.
   - La comparaison est volontairement limitée à deux notes, sans diff mot à mot ni défilement synchronisé.
+- **Ordre manuel des cartes** : nouveau mode de tri par espace.
+  - Réordonnancement par glisser-déposer avec trait d'insertion ; les notes épinglées restent en tête et se réordonnent dans leur groupe.
+  - `Monter` / `Descendre` dans le menu contextuel et raccourcis `Alt + ↑` / `Alt + ↓`.
+  - Ordre mémorisé dans `.decoupe/order.json`, avec réconciliation des notes ajoutées ou supprimées.
+  - Le réordonnancement est désactivé pendant une recherche et en vue « Toutes les notes ».
+  - La fusion de notes passe à `Alt + glisser` ; le glisser simple ne fusionne plus.
+
+### Modifié
+
+- Le glisser-déposer d'une carte sur une autre ne fusionne plus les notes par accident : la fusion demande désormais `Alt + glisser`.
 
 ## [1.0.0] — 2026-11-03
 

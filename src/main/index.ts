@@ -3,7 +3,7 @@ import { existsSync, promises as fs, watch, type FSWatcher } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { IPC } from '../shared/api'
-import type { BackupSettings, VaultInfo } from '../shared/types'
+import type { BackupSettings, VaultInfo, VaultOrder } from '../shared/types'
 import * as backups from './backups'
 import * as vault from './vault'
 
@@ -261,6 +261,10 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC.listNotes, () => vault.listNotes(requireVault()))
   ipcMain.handle(IPC.listSpaces, () => vault.listSpaces(requireVault()))
+  ipcMain.handle(IPC.readOrder, () => vault.readOrder(requireVault()))
+  ipcMain.handle(IPC.writeOrder, (_event, order: VaultOrder) =>
+    vault.writeOrder(requireVault(), order)
+  )
   ipcMain.handle(IPC.readNote, (_event, relativePath: string) =>
     vault.readNote(requireVault(), relativePath)
   )

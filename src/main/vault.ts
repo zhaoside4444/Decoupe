@@ -12,7 +12,8 @@ import type {
   TrashedNote,
   TrashedSpace,
   TrashItem,
-  TrashRestoreResult
+  TrashRestoreResult,
+  VaultOrder
 } from '../shared/types'
 import {
   baseFromPath,
@@ -253,6 +254,75 @@ export async function listNotes(root: string): Promise<NoteSummary[]> {
 
   notes.sort((a, b) => b.updatedAt - a.updatedAt)
   return notes
+}
+
+const ORDER_FILE = 'order.json'
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
+function orderFilePath(root: string): string {
+  return path.join(root, META_DIR, ORDER_FILE)
+}
+
+function sanitizeOrder(value: unknown): VaultOrder {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const record = value as Record<string, unknown>
+  const spaces =
+    record.version === 1 &&
+    record.spaces &&
+    typeof record.spaces === 'object' &&
+    !Array.isArray(record.spaces)
+      ? (record.spaces as Record<string, unknown>)
+      : record
+  const order: VaultOrder = {}
+
+  for (const [space, list] of Object.entries(spaces)) {
+    if (DANGEROUS_KEYS.has(space) || !Array.isArray(list)) continue
+    const paths: string[] = []
+    const seen = new Set<string>()
+    for (const entry of list) {
+      if (typeof entry !== 'string' || !entry.toLowerCase().endsWith('.md')) continue
+      if (entry.includes('\0') || path.isAbsolute(entry)) continue
+      if (entry.split(/[\\/]/).includes('..')) continue
+      const normalized = toPosix(entry)
+      if (!normalized.startsWith(`${NOTES_DIR}/`)) continue
+      if (seen.has(normalized)) continue
+      seen.add(normalized)
+      paths.push(normalized)
+    }
+    order[space] = paths
+  }
+
+  return order
+}
+
+/** Lit l’ordre manuel par espace ; un fichier absent ou invalide donne un ordre vide. */
+export async function readOrder(root: string): Promise<VaultOrder> {
+  try {
+    const raw = await fs.readFile(orderFilePath(root), 'utf8')
+    return sanitizeOrder(JSON.parse(raw.replace(/^\uFEFF/, '')))
+  } catch {
+    return {}
+  }
+}
+
+let orderWriteQueue: Promise<void> = Promise.resolve()
+
+/** Écrit l’ordre complet de façon sérialisée et atomique. */
+export function writeOrder(root: string, order: VaultOrder): Promise<void> {
+  const payload = sanitizeOrder({ version: 1, spaces: order })
+  const run = orderWriteQueue.then(async () => {
+    await fs.mkdir(path.join(root, META_DIR), { recursive: true })
+    const target = orderFilePath(root)
+    const temporary = `${target}.tmp`
+    await fs.writeFile(
+      temporary,
+      JSON.stringify({ version: 1, spaces: payload }, null, 2),
+      'utf8'
+    )
+    await fs.rename(temporary, target)
+  })
+  orderWriteQueue = run.catch(() => {})
+  return run
 }
 
 export async function listBacklinks(

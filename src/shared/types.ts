@@ -25,6 +25,9 @@ export interface Space {
   count: number
 }
 
+/** Ordre manuel des notes, par espace (clé `''` = boîte d’entrée). */
+export type VaultOrder = Record<string, string[]>
+
 export interface TagSummary {
   name: string
   count: number

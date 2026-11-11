@@ -116,7 +116,7 @@ describe('CommandPalette', () => {
     const props = renderPalette()
 
     await user.type(paletteInput(), 'Trier')
-    expect(screen.getAllByRole('button')).toHaveLength(3)
+    expect(screen.getAllByRole('button')).toHaveLength(4)
 
     await user.keyboard('{ArrowDown}')
     await user.keyboard('{Enter}')
@@ -136,8 +136,24 @@ describe('CommandPalette', () => {
     expect(props.onClose).not.toHaveBeenCalled()
   })
 
-  it('propose de comparer la note ouverte', async () => {
+  it('propose l’ordre manuel seulement dans un espace', async () => {
     const user = userEvent.setup()
+    const props = renderPalette()
+
+    await user.type(paletteInput(), 'ordre manuel')
+    await user.click(screen.getByRole('button', { name: /Trier : ordre manuel/ }))
+    expect(props.onSortChange).toHaveBeenCalledWith('manual')
+  })
+
+  it('masque l’ordre manuel dans la vue Tous les espaces', async () => {
+    const user = userEvent.setup()
+    renderPalette({ manualSortAvailable: false })
+
+    await user.type(paletteInput(), 'ordre manuel')
+    expect(screen.getByText('Aucun résultat.')).toBeInTheDocument()
+  })
+
+  it('propose de comparer la note ouverte', async () => {    const user = userEvent.setup()
     const props = renderPalette({ onCompareWith: vi.fn() })
 
     await user.type(paletteInput(), 'Comparer avec')

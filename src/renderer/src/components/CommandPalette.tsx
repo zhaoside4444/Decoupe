@@ -27,6 +27,7 @@ interface CommandPaletteProps {
   onOpenTimeline?: () => void
   onExportPdf?: () => void
   onSortChange: (mode: NoteSortMode) => void
+  manualSortAvailable?: boolean
   onToggleRelatedNotes?: () => void
   comparePath?: string | null
   onCompareWith?: () => void
@@ -85,6 +86,7 @@ export function CommandPalette({
   onOpenTimeline,
   onExportPdf,
   onSortChange,
+  manualSortAvailable = true,
   onToggleRelatedNotes,
   comparePath = null,
   onCompareWith,
@@ -192,7 +194,18 @@ export function CommandPalette({
         group: 'Trier',
         label: 'Trier : titre A→Z',
         run: () => onSortChange('title')
-      }
+      },
+      ...(manualSortAvailable
+        ? [
+            {
+              id: 'sort-manual',
+              kind: 'action' as const,
+              group: 'Trier',
+              label: 'Trier : ordre manuel',
+              run: () => onSortChange('manual')
+            }
+          ]
+        : [])
     ]
     if (selectedPath) {
       if (onCompareWith) {
@@ -254,6 +267,7 @@ export function CommandPalette({
   }, [
     comparePath,
     currentSpace,
+    manualSortAvailable,
     onCloseCompare,
     onCompareWith,
     onMoveCurrent,

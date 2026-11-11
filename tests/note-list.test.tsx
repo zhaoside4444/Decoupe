@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, createEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NoteList } from '../src/renderer/src/components/NoteList'
 import type { NoteSummary, Space } from '../src/shared/types'
@@ -59,6 +59,8 @@ function renderList(overrides: Partial<Props> = {}) {
     spaces,
     onSelect: vi.fn(),
     onSortChange: vi.fn(),
+    onReorder: vi.fn(),
+    onMoveNote: vi.fn(),
     onTogglePin: vi.fn(),
     onBatchMove: vi.fn(async () => true),
     onBatchTag: vi.fn(async () => true),
@@ -96,6 +98,25 @@ function fakeDataTransfer() {
     effectAllowed: '',
     dropEffect: ''
   }
+}
+
+type DragKind = 'dragOver' | 'drop'
+type DragInit = { altKey?: boolean; clientY?: number }
+
+/** jsdom ne fournit pas DragEvent : on ajoute les propriétés utiles à la main. */
+function fireDrag(
+  element: HTMLElement,
+  kind: DragKind,
+  dataTransfer: ReturnType<typeof fakeDataTransfer>,
+  init: DragInit = {}
+): void {
+  const event =
+    kind === 'dragOver'
+      ? createEvent.dragOver(element, { dataTransfer })
+      : createEvent.drop(element, { dataTransfer })
+  Object.defineProperty(event, 'altKey', { value: !!init.altKey })
+  Object.defineProperty(event, 'clientY', { value: init.clientY ?? 0 })
+  fireEvent(element, event)
 }
 
 afterEach(() => {
@@ -295,15 +316,92 @@ describe('NoteList — sélection multiple', () => {
 })
 
 describe('NoteList — glisser-déposer et navigation', () => {
-  it('fusionne une note déposée sur une autre', () => {
+  it('fusionne une note avec Alt + glisser', () => {
     const props = renderList()
     const dataTransfer = fakeDataTransfer()
 
     fireEvent.dragStart(card('Alice'), { dataTransfer })
-    fireEvent.dragOver(card('Bob'), { dataTransfer })
-    fireEvent.drop(card('Bob'), { dataTransfer })
+    fireDrag(card('Bob'), 'dragOver', dataTransfer, { altKey: true })
+    fireDrag(card('Bob'), 'drop', dataTransfer, { altKey: true })
 
     expect(props.onMerge).toHaveBeenCalledWith(alice.path, bob.path)
+  })
+
+  it('ne fusionne pas avec un glisser simple hors ordre manuel', () => {
+    const props = renderList({ notes: [alice, chapitre] })
+    const dataTransfer = fakeDataTransfer()
+
+    fireEvent.dragStart(card('Alice'), { dataTransfer })
+    fireDrag(card('Chapitre 1'), 'dragOver', dataTransfer)
+    fireDrag(card('Chapitre 1'), 'drop', dataTransfer)
+
+    expect(props.onMerge).not.toHaveBeenCalled()
+    expect(props.onReorder).not.toHaveBeenCalled()
+  })
+
+  it('réordonne les cartes en ordre manuel', () => {
+    const props = renderList({ notes: [alice, chapitre], sortMode: 'manual' })
+    const dataTransfer = fakeDataTransfer()
+
+    fireEvent.dragStart(card('Alice'), { dataTransfer })
+    fireDrag(card('Chapitre 1'), 'dragOver', dataTransfer, { clientY: 20 })
+    fireDrag(card('Chapitre 1'), 'drop', dataTransfer, { clientY: 20 })
+
+    expect(props.onReorder).toHaveBeenCalledWith([chapitre.path, alice.path])
+    expect(props.onMerge).not.toHaveBeenCalled()
+  })
+
+  it('désactive le réordonnancement pendant une recherche', () => {
+    const props = renderList({
+      notes: [alice, chapitre],
+      sortMode: 'manual',
+      search: 'Alice'
+    })
+    const dataTransfer = fakeDataTransfer()
+
+    fireEvent.dragStart(card('Alice'), { dataTransfer })
+    fireDrag(card('Chapitre 1'), 'dragOver', dataTransfer, { clientY: 20 })
+    fireDrag(card('Chapitre 1'), 'drop', dataTransfer, { clientY: 20 })
+
+    expect(props.onReorder).not.toHaveBeenCalled()
+  })
+
+  it('empêche de sortir une note de son groupe épinglé par glisser', () => {
+    const props = renderList({
+      notes: [bob, alice, chapitre],
+      sortMode: 'manual'
+    })
+    const dataTransfer = fakeDataTransfer()
+
+    fireEvent.dragStart(card('Bob'), { dataTransfer })
+    fireDrag(card('Alice'), 'dragOver', dataTransfer, { clientY: 20 })
+    fireDrag(card('Alice'), 'drop', dataTransfer, { clientY: 20 })
+
+    expect(props.onReorder).not.toHaveBeenCalled()
+  })
+
+  it('désactive Monter quand la cible change de groupe', () => {
+    renderList({ notes: [bob, alice], sortMode: 'manual' })
+
+    fireEvent.contextMenu(card('Alice'), { clientX: 12, clientY: 24 })
+
+    expect(screen.getByRole('menuitem', { name: 'Monter' })).toBeDisabled()
+  })
+
+  it('propose Monter et Descendre dans le menu contextuel', async () => {
+    const user = userEvent.setup()
+    const props = renderList({ notes: [alice, chapitre], sortMode: 'manual' })
+
+    fireEvent.contextMenu(card('Chapitre 1'), { clientX: 12, clientY: 24 })
+    await user.click(screen.getByRole('menuitem', { name: 'Monter' }))
+
+    expect(props.onMoveNote).toHaveBeenCalledWith(chapitre.path, -1)
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+  })
+
+  it('désactive « Ordre manuel » dans la vue Tous les espaces', () => {
+    renderList({ manualSortDisabled: true })
+    expect(screen.getByRole('option', { name: 'Ordre manuel' })).toBeDisabled()
   })
 
   it('met en évidence la carte atteinte au clavier', () => {

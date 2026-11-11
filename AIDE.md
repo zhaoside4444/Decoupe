@@ -16,6 +16,21 @@ Quand une note n'a pas d'espace, l'interface, l'export PDF, la corbeille et les 
 
 ---
 
+## Trier et réordonner les notes
+
+Le sélecteur en haut de la liste propose quatre modes : **Modifiée**, **Créée**, **Titre A→Z** et **Ordre manuel**.
+
+- En **Ordre manuel**, glissez une carte au-dessus ou en dessous d'une autre : un trait d'insertion montre la position d'arrivée.
+- Les notes **épinglées** restent groupées en tête ; le glisser réordonne à l'intérieur du groupe épinglé ou du groupe normal, sans faire passer une note d'un groupe à l'autre.
+- Le menu contextuel d'une carte (clic droit) propose **Monter** et **Descendre**. Au clavier, `Alt + ↑` et `Alt + ↓` déplacent la note ouverte lorsque le focus n'est pas dans un champ de saisie.
+- Le réordonnancement est désactivé pendant une recherche. Les notes absentes de l'ordre enregistré sont ajoutées à la fin de leur groupe.
+- L'ordre est mémorisé par espace dans `.decoupe/order.json`. Il ne suit donc pas les notes si ce dossier n'est pas copié avec le vault ; un changement de nom d'espace met les chemins à jour.
+- En vue **Toutes les notes**, l'ordre manuel est indisponible car plusieurs espaces ont chacun leur propre ordre.
+
+Pour **fusionner** deux notes, utilisez `Alt + glisser` : la note déposée est intégrée à la note cible, puis mise à la corbeille. Le glisser simple ne fusionne plus, afin d'éviter une action destructive pendant un réordonnancement.
+
+---
+
 ## Timeline narrative (écriture de livres)
 
 Pour utiliser la timeline, vos notes doivent suivre cette convention :
@@ -126,4 +141,6 @@ Ne les utilisez donc pas pour des remarques destinées à rester invisibles : el
 - Recherche globale : `Ctrl + K`
 - Recherche dans la note : `Ctrl + F`
 - Comparer avec une autre note : `Alt + clic` sur une carte de la liste
+- Réordonner la note ouverte en ordre manuel : `Alt + ↑` / `Alt + ↓`
+- Fusionner une note : `Alt + glisser` sur la note cible
 - Export PNG / PDF : boutons dans l'en-tête de la timeline

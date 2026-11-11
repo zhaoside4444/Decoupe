@@ -35,12 +35,15 @@ interface NoteListProps {
   selectedPath: string | null
   search: string
   sortMode: NoteSortMode
+  manualSortDisabled?: boolean
   spaces: Space[]
   keyNavIndex?: number | null
   comparePath?: string | null
   onSelect: (path: string) => void
   onCompare?: (path: string) => void
   onSortChange: (mode: NoteSortMode) => void
+  onReorder: (paths: string[]) => void
+  onMoveNote: (path: string, direction: -1 | 1) => void
   onTogglePin: (path: string) => void
   onBatchMove: (paths: string[], space: string) => Promise<boolean>
   onBatchTag: (paths: string[], tags: string) => Promise<boolean>
@@ -124,12 +127,15 @@ export function NoteList({
   selectedPath,
   search,
   sortMode,
+  manualSortDisabled = false,
   spaces,
   keyNavIndex = null,
   comparePath = null,
   onSelect,
   onCompare,
   onSortChange,
+  onReorder,
+  onMoveNote,
   onTogglePin,
   onBatchMove,
   onBatchTag,
@@ -140,7 +146,10 @@ export function NoteList({
   onRemoveFilter,
   onTagClick
 }: NoteListProps) {
-  const [hover, setHover] = useState<string | null>(null)
+  const [mergeHover, setMergeHover] = useState<string | null>(null)
+  const [dropLine, setDropLine] = useState<{ path: string; after: boolean } | null>(null)
+  const [dragSource, setDragSource] = useState<string | null>(null)
+  const [menu, setMenu] = useState<{ path: string; x: number; y: number } | null>(null)
   const [selection, setSelection] = useState<string[]>([])
   const [anchor, setAnchor] = useState<number | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
@@ -149,6 +158,7 @@ export function NoteList({
   const [batchBusy, setBatchBusy] = useState(false)
   const parsedSearch = parseSearchQuery(search)
   const searchActive = search.trim().length > 0
+  const canReorder = sortMode === 'manual' && !searchActive
   const searchTerms = parsedSearch.text.split(/\s+/).filter(Boolean)
 
   const activeSelection = useMemo(
@@ -161,7 +171,27 @@ export function NoteList({
 
   useEffect(() => {
     setSelection([])
+    setMenu(null)
   }, [title, search])
+
+  useEffect(() => {
+    if (!menu) return
+    const close = (): void => setMenu(null)
+    const onKey = (event: globalThis.KeyboardEvent): void => {
+      if (event.key === 'Escape') close()
+    }
+    window.addEventListener('click', close)
+    window.addEventListener('resize', close)
+    window.addEventListener('keydown', onKey)
+    const scroller = listRef.current
+    scroller?.addEventListener('scroll', close)
+    return () => {
+      window.removeEventListener('click', close)
+      window.removeEventListener('resize', close)
+      window.removeEventListener('keydown', onKey)
+      scroller?.removeEventListener('scroll', close)
+    }
+  }, [menu])
 
   useEffect(() => {
     if (keyNavIndex === null) return
@@ -197,11 +227,98 @@ export function NoteList({
     0
   )
 
-  function dragOver(event: DragEvent, targetPath: string): void {
+  function clearDrag(): void {
+    setDragSource(null)
+    setMergeHover(null)
+    setDropLine(null)
+  }
+
+  function handleDragStart(event: DragEvent, path: string): void {
+    event.dataTransfer.setData('text/decoupe-note', path)
+    event.dataTransfer.effectAllowed = 'move'
+    setDragSource(path)
+    setMenu(null)
+  }
+
+  function handleDragOver(event: DragEvent, note: NoteSummary): void {
     if (!event.dataTransfer.types.includes('text/decoupe-note')) return
+    if (dragSource === note.path) {
+      setDropLine(null)
+      setMergeHover(null)
+      return
+    }
+    if (event.altKey) {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'move'
+      setMergeHover(note.path)
+      setDropLine(null)
+      return
+    }
+    if (!canReorder) {
+      event.dataTransfer.dropEffect = 'none'
+      setDropLine(null)
+      setMergeHover(null)
+      return
+    }
+    const source = notes.find((entry) => entry.path === dragSource)
+    if (!source || !!source.pinned !== !!note.pinned) {
+      event.dataTransfer.dropEffect = 'none'
+      setDropLine(null)
+      return
+    }
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
-    setHover(targetPath)
+    const rect = event.currentTarget.getBoundingClientRect()
+    const after = event.clientY > rect.top + rect.height / 2
+    setMergeHover(null)
+    setDropLine((current) =>
+      current?.path === note.path && current.after === after
+        ? current
+        : { path: note.path, after }
+    )
+  }
+
+  function handleDrop(event: DragEvent, note: NoteSummary): void {
+    const source = event.dataTransfer.getData('text/decoupe-note')
+    const line = dropLine
+    const merging = event.altKey
+    clearDrag()
+    if (!source || source === note.path) return
+    event.preventDefault()
+    if (merging) {
+      onMerge(source, note.path)
+      return
+    }
+    if (!canReorder || !line || line.path !== note.path) return
+    const sourceNote = notes.find((entry) => entry.path === source)
+    if (!sourceNote || !!sourceNote.pinned !== !!note.pinned) return
+    const paths = notes.map((entry) => entry.path)
+    const from = paths.indexOf(source)
+    if (from === -1) return
+    const next = [...paths]
+    next.splice(from, 1)
+    const insertAt = next.indexOf(note.path) + (line.after ? 1 : 0)
+    if (insertAt === from) return
+    next.splice(insertAt, 0, source)
+    onReorder(next)
+  }
+
+  function canMove(path: string, direction: -1 | 1): boolean {
+    const index = notes.findIndex((note) => note.path === path)
+    if (index === -1) return false
+    const target = index + direction
+    if (target < 0 || target >= notes.length) return false
+    return !!notes[index].pinned === !!notes[target].pinned
+  }
+
+  function handleContextMenu(event: ReactMouseEvent<HTMLElement>, note: NoteSummary): void {
+    if (!canReorder) return
+    event.preventDefault()
+    setMenu({
+      path: note.path,
+      x: Math.min(event.clientX, Math.max(8, window.innerWidth - 170)),
+      y: Math.min(event.clientY, Math.max(8, window.innerHeight - 84))
+    })
   }
 
   function runBatch(action: () => Promise<boolean>): void {
@@ -309,7 +426,11 @@ export function NoteList({
               onChange={(event) => onSortChange(event.target.value as NoteSortMode)}
             >
               {SORT_MODES.map((mode) => (
-                <option key={mode} value={mode}>
+                <option
+                  key={mode}
+                  value={mode}
+                  disabled={mode === 'manual' && manualSortDisabled}
+                >
                   {SORT_LABELS[mode]}
                 </option>
               ))}
@@ -426,26 +547,30 @@ export function NoteList({
             key={note.path}
             data-key-index={index}
             className={`note-card ${note.path === selectedPath ? 'is-selected' : ''} ${
-              hover === note.path ? 'is-drop' : ''
+              mergeHover === note.path ? 'is-drop' : ''
+            } ${
+              dropLine?.path === note.path
+                ? dropLine.after
+                  ? 'is-drop-after'
+                  : 'is-drop-before'
+                : ''
             } ${note.pinned ? 'is-pinned' : ''} ${
               note.path === comparePath ? 'is-compared' : ''
             } ${
               activeSelection.includes(note.path) ? 'is-checked' : ''
-            } ${keyNavIndex === index ? 'is-keynav' : ''}`}
+            } ${keyNavIndex === index ? 'is-keynav' : ''} ${
+              canReorder ? 'is-reorderable' : ''
+            }`}
             draggable
-            onDragStart={(event) => {
-              event.dataTransfer.setData('text/decoupe-note', note.path)
-              event.dataTransfer.effectAllowed = 'move'
+            onDragStart={(event) => handleDragStart(event, note.path)}
+            onDragOver={(event) => handleDragOver(event, note)}
+            onDragLeave={() => {
+              setMergeHover((current) => (current === note.path ? null : current))
+              setDropLine((current) => (current?.path === note.path ? null : current))
             }}
-            onDragOver={(event) => dragOver(event, note.path)}
-            onDragLeave={() => setHover((current) => (current === note.path ? null : current))}
-            onDrop={(event) => {
-              const source = event.dataTransfer.getData('text/decoupe-note')
-              setHover(null)
-              if (!source || source === note.path) return
-              event.preventDefault()
-              onMerge(source, note.path)
-            }}
+            onDrop={(event) => handleDrop(event, note)}
+            onDragEnd={clearDrag}
+            onContextMenu={(event) => handleContextMenu(event, note)}
             onClick={(event) => handleCardClick(event, index)}
           >
             <span
@@ -548,6 +673,41 @@ export function NoteList({
           </div>
         )}
       </div>
+
+      {menu ? (
+        <div
+          className="card-menu"
+          role="menu"
+          aria-label="Actions de la note"
+          style={{ left: menu.x, top: menu.y }}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!canMove(menu.path, -1)}
+            onClick={() => {
+              const path = menu.path
+              setMenu(null)
+              onMoveNote(path, -1)
+            }}
+          >
+            Monter
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!canMove(menu.path, 1)}
+            onClick={() => {
+              const path = menu.path
+              setMenu(null)
+              onMoveNote(path, 1)
+            }}
+          >
+            Descendre
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }

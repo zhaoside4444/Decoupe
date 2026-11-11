@@ -15,7 +15,8 @@ import type {
   TrashedSpace,
   TrashItem,
   TrashRestoreResult,
-  VaultInfo
+  VaultInfo,
+  VaultOrder
 } from '../shared/types'
 
 const api: AppApi = {
@@ -27,6 +28,9 @@ const api: AppApi = {
 
   listNotes: () => ipcRenderer.invoke(IPC.listNotes) as Promise<NoteSummary[]>,
   listSpaces: () => ipcRenderer.invoke(IPC.listSpaces) as Promise<Space[]>,
+  readOrder: () => ipcRenderer.invoke(IPC.readOrder) as Promise<VaultOrder>,
+  writeOrder: (order: VaultOrder) =>
+    ipcRenderer.invoke(IPC.writeOrder, order) as Promise<void>,
   readNote: (path: string) => ipcRenderer.invoke(IPC.readNote, path) as Promise<string>,
   writeNote: (path: string, content: string, expectedContent?: string) =>
     ipcRenderer.invoke(IPC.writeNote, path, content, expectedContent) as Promise<string>,

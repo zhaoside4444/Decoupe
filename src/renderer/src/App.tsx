@@ -12,7 +12,8 @@ import type {
   SplitParts,
   TagSummary,
   TrashItem,
-  VaultInfo
+  VaultInfo,
+  VaultOrder
 } from '@shared/types'
 import {
   baseFromPath,
@@ -138,6 +139,8 @@ function MainApp() {
     }
   })
   const [trashItems, setTrashItems] = useState<TrashItem[]>([])
+  const [order, setOrder] = useState<VaultOrder>({})
+  const orderRef = useRef<VaultOrder>({})
   const [trashOpen, setTrashOpen] = useState(false)
   const [backupOpen, setBackupOpen] = useState(false)
   const [externalChange, setExternalChange] = useState<ExternalChange | null>(null)
@@ -399,6 +402,27 @@ function MainApp() {
       // Stockage indisponible : le choix tient pour la session.
     }
   }, [])
+
+  const applyOrder = useCallback((next: VaultOrder): void => {
+    orderRef.current = next
+    setOrder(next)
+  }, [])
+
+  const manualSortAvailable = activeSpace !== '*'
+  const effectiveSortMode =
+    sortMode === 'manual' && !manualSortAvailable ? 'modified' : sortMode
+
+  const reorderNotes = useCallback(
+    (paths: string[]): void => {
+      if (!manualSortAvailable) return
+      const next = { ...orderRef.current, [activeSpace]: paths }
+      applyOrder(next)
+      void window.api
+        .writeOrder(next)
+        .catch((error) => showToast(errorMessage(error)))
+    },
+    [activeSpace, applyOrder, manualSortAvailable, showToast]
+  )
 
   useEffect(() => {
     applyUiThemeAndWidth(settings)
@@ -731,6 +755,11 @@ function MainApp() {
       setBackupOpen(false)
       setComparePath(null)
       setComparePickerOpen(false)
+      try {
+        applyOrder(await window.api.readOrder())
+      } catch {
+        applyOrder({})
+      }
       const next = await refresh(false)
       try {
         const recentRaw = window.localStorage.getItem('recentVaults')
@@ -756,7 +785,7 @@ function MainApp() {
         }
       }
     },
-    [raiseExternalChange, refresh, showToast, settings.defaultSpace]
+    [applyOrder, raiseExternalChange, refresh, showToast, settings.defaultSpace]
   )
 
   useEffect(() => {
@@ -767,6 +796,11 @@ function MainApp() {
         if (cancelled) return
         if (existing) {
           setVault(existing)
+          try {
+            applyOrder(await window.api.readOrder())
+          } catch {
+            // Ordre illisible : la liste retombe sur le tri courant.
+          }
           const next = await refresh(false)
           if (!cancelled && next.length) {
             const spaceNames = next.map((n) => n.space)
@@ -791,7 +825,7 @@ function MainApp() {
     return () => {
       cancelled = true
     }
-  }, [refresh, showToast, settings.defaultSpace])
+  }, [applyOrder, refresh, showToast, settings.defaultSpace])
 
   const handleVaultChanged = useCallback(async (): Promise<void> => {
     if (changeBusyRef.current) {
@@ -1523,6 +1557,21 @@ function MainApp() {
       try {
         await editorRef.current?.flush()
         await window.api.renameSpace(from, to)
+        const previousOrder = orderRef.current
+        if (previousOrder[from]) {
+          const prefix = `Notes/${from}/`
+          const next = { ...previousOrder }
+          next[to] = previousOrder[from].map((notePath) =>
+            notePath.startsWith(prefix)
+              ? `Notes/${to}/${notePath.slice(prefix.length)}`
+              : notePath
+          )
+          delete next[from]
+          applyOrder(next)
+          void window.api
+            .writeOrder(next)
+            .catch((error) => showToast(errorMessage(error)))
+        }
         if (activeSpace === from) setActiveSpace(to)
         const selected = selectedPathRef.current
         if (selected && spaceOfPath(selected) === from) {
@@ -1540,7 +1589,7 @@ function MainApp() {
         throw error
       }
     },
-    [activeSpace, refresh, showToast]
+    [activeSpace, applyOrder, refresh, showToast]
   )
 
   const deleteSpace = useCallback(
@@ -1642,6 +1691,8 @@ function MainApp() {
 
   const closeBacklinks = useCallback(() => setBacklinksOpen(false), [])
 
+  const manualOrder = useMemo(() => order[activeSpace] ?? [], [order, activeSpace])
+
   const visibleNotes = useMemo(() => {
     const base =
       searchResults !== null
@@ -1649,8 +1700,24 @@ function MainApp() {
         : activeSpace === '*'
           ? notes
           : notes.filter((note) => note.space === activeSpace)
-    return sortNotes(base, sortMode)
-  }, [notes, activeSpace, searchResults, sortMode])
+    return sortNotes(base, effectiveSortMode, manualOrder)
+  }, [notes, activeSpace, searchResults, effectiveSortMode, manualOrder])
+
+  const moveNoteInList = useCallback(
+    (path: string, direction: -1 | 1): void => {
+      const paths = visibleNotes.map((note) => note.path)
+      const index = paths.indexOf(path)
+      if (index === -1) return
+      const target = index + direction
+      if (target < 0 || target >= paths.length) return
+      if (!!visibleNotes[index].pinned !== !!visibleNotes[target].pinned) return
+      const next = [...paths]
+      const [moved] = next.splice(index, 1)
+      next.splice(target, 0, moved)
+      reorderNotes(next)
+    },
+    [reorderNotes, visibleNotes]
+  )
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -1658,7 +1725,6 @@ function MainApp() {
       if (comparePickerOpen) return
       const key = event.key
       if (key !== 'ArrowDown' && key !== 'ArrowUp' && key !== 'Enter') return
-      if (event.ctrlKey || event.metaKey || event.altKey) return
       const target = event.target as HTMLElement | null
       if (
         target?.closest(
@@ -1667,6 +1733,16 @@ function MainApp() {
       ) {
         return
       }
+      if (event.altKey) {
+        if (event.ctrlKey || event.metaKey || event.shiftKey || key === 'Enter') return
+        if (effectiveSortMode !== 'manual' || search.trim()) return
+        const selected = selectedPathRef.current
+        if (!selected) return
+        event.preventDefault()
+        moveNoteInList(selected, key === 'ArrowDown' ? 1 : -1)
+        return
+      }
+      if (event.ctrlKey || event.metaKey) return
       if (key === 'Enter') {
         const index = keyIndexRef.current
         const note = index === null ? undefined : visibleNotes[index]
@@ -1690,9 +1766,12 @@ function MainApp() {
   }, [
     backupOpen,
     comparePickerOpen,
+    effectiveSortMode,
     externalChange,
+    moveNoteInList,
     openNote,
     paletteOpen,
+    search,
     settingsOpen,
     trashOpen,
     visibleNotes
@@ -1847,8 +1926,11 @@ function MainApp() {
           void openNote(path)
         }}
         keyNavIndex={keyIndex}
-        sortMode={sortMode}
+        sortMode={effectiveSortMode}
+        manualSortDisabled={!manualSortAvailable}
         onSortChange={changeSortMode}
+        onReorder={reorderNotes}
+        onMoveNote={moveNoteInList}
         onTogglePin={(path) => void togglePin(path)}
         spaces={spaces}
         onBatchMove={(paths, space) => batchMove(paths, space)}
@@ -2010,6 +2092,7 @@ function MainApp() {
         onOpenTimeline={openTimeline}
           onExportPdf={() => setPdfExportOpen(true)}
           onSortChange={changeSortMode}
+          manualSortAvailable={manualSortAvailable}
           showRelatedNotes={settings.showRelatedNotes}
           onToggleRelatedNotes={() =>
             changeSettings({ ...settings, showRelatedNotes: !settings.showRelatedNotes })

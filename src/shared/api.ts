@@ -13,7 +13,8 @@ import type {
   TrashedSpace,
   TrashItem,
   TrashRestoreResult,
-  VaultInfo
+  VaultInfo,
+  VaultOrder
 } from './types'
 
 export interface AppApi {
@@ -24,6 +25,8 @@ export interface AppApi {
 
   listNotes: () => Promise<NoteSummary[]>
   listSpaces: () => Promise<Space[]>
+  readOrder: () => Promise<VaultOrder>
+  writeOrder: (order: VaultOrder) => Promise<void>
   readNote: (path: string) => Promise<string>
   writeNote: (
     path: string,
@@ -75,6 +78,8 @@ export const IPC = {
   revealVault: 'vault:reveal',
   listNotes: 'notes:list',
   listSpaces: 'spaces:list',
+  readOrder: 'order:read',
+  writeOrder: 'order:write',
   readNote: 'notes:read',
   writeNote: 'notes:write',
   createNote: 'notes:create',

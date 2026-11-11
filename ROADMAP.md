@@ -202,7 +202,7 @@
 
 ## Phase 6 — Évolutions après la 1.0.0
 
-> Planifiées les 7 et 9 novembre 2026. La section 20 (comparaison) est implémentée ; les autres chantiers restent à faire.
+> Planifiées les 7 et 9 novembre 2026. Les sections 20 (comparaison) et 21 (ordre manuel) sont implémentées ; les autres chantiers restent à faire.
 
 ### 20. Comparer deux notes côte à côte
 - [x] Afficher une seconde note en lecture seule à côté de la note active.
@@ -217,17 +217,19 @@
 **Effort : M** — Environ 2 à 3 jours, tests et documentation compris. Risque faible : la note comparée est en lecture seule, donc la sauvegarde, les conflits externes et la recherche dans la note restent liés à la seule note active. Une version ultérieure pourra rendre les deux panneaux éditables.
 
 ### 21. Ordre manuel des cartes d’un espace
-- [ ] Ajouter un mode de tri « Ordre manuel » au sélecteur existant.
-- [ ] Réordonner les cartes par glisser-déposer, avec indicateur d’insertion entre deux cartes.
-- [ ] Déplacer la fusion de notes vers un geste explicite (menu contextuel ou `Alt + glisser`) pour ne pas la confondre avec le réordonnancement.
-- [ ] Ajouter « Monter / Descendre » au clavier et dans le menu contextuel.
-- [ ] Persister l’ordre par espace, de préférence dans `.decoupe/order.json`, avec réconciliation des notes ajoutées, supprimées ou déplacées.
-- [ ] Désactiver le réordonnancement pendant une recherche active.
-- [ ] Trancher le comportement des notes épinglées en ordre manuel.
+- [x] Ajouter un mode de tri « Ordre manuel » au sélecteur existant.
+- [x] Réordonner les cartes par glisser-déposer, avec indicateur d’insertion entre deux cartes.
+- [x] Déplacer la fusion de notes vers un geste explicite (menu contextuel ou `Alt + glisser`) pour ne pas la confondre avec le réordonnancement.
+- [x] Ajouter « Monter / Descendre » au clavier et dans le menu contextuel.
+- [x] Persister l’ordre par espace, de préférence dans `.decoupe/order.json`, avec réconciliation des notes ajoutées, supprimées ou déplacées.
+- [x] Désactiver le réordonnancement pendant une recherche active.
+- [x] Trancher le comportement des notes épinglées en ordre manuel.
+
+**Implémenté le 11 novembre 2026** — Le mode « Ordre manuel » est disponible par espace, avec glisser-déposer et trait d’insertion, menu contextuel `Monter` / `Descendre` et raccourcis `Alt + ↑` / `Alt + ↓`. L’ordre est stocké dans `.decoupe/order.json` (écriture atomique et sérialisée), les notes inconnues sont ajoutées à la fin de leur groupe, et les chemins suivent le renommage d’un espace. Les notes épinglées restent en tête et se réordonnent dans leur propre groupe. La fusion passe à `Alt + glisser`. Le mode est désactivé pendant une recherche et dans la vue « Toutes les notes ».
 
 **Effort : M** — Environ 3 à 4 jours, tests et documentation compris. Risque faible à moyen : le point délicat est la coexistence du glisser pour réordonner et du glisser pour fusionner, plus la réconciliation de l’ordre avec les fichiers du vault.
 
-> **Décision en attente** : l’ordre doit-il être stocké dans `.decoupe/order.json` (aucune pollution des notes, non portable sans le dossier `.decoupe`) ou dans un champ `order` du frontmatter (portable, mais réécrit plusieurs `.md` à chaque déplacement) ?
+> **Décision** : ordre stocké dans `.decoupe/order.json` (aucune pollution des notes), avec repli sur le tri par modification pour les notes absentes et désactivation dans la vue « Toutes les notes ». La fusion reste accessible par `Alt + glisser`.
 
 ### 22. Boutons de tons pinyin
 - [ ] Ajouter un bouton « Tons » dans la barre de mise en forme.
@@ -291,7 +293,7 @@
 12. [x] Distribution technique : installateur NSIS, README, BUILD.md, licence MIT et CI.
 13. [ ] Signature de code et première release publique.
 14. [x] Comparer deux notes côte à côte — 1.1.
-15. [ ] Ordre manuel des cartes d’un espace — 1.2.
+15. [x] Ordre manuel des cartes d’un espace — 1.2.
 16. [ ] Boutons de tons pinyin — confort, sans version cible ; PowerToys reste la solution recommandée en attendant.
 17. [ ] Prise de notes multilingue — réflexion à découper avant toute implémentation.
 18. [ ] Mode immersion : masquer la barre latérale et/ou la liste des notes — confort, sans version cible.
@@ -304,7 +306,7 @@
 - Quel niveau de compatibilité Obsidian faut-il garantir pour les liens et le frontmatter ?
 - Notes épinglées : **décision** frontmatter `pinned: true`, portable et lisible hors application.
 - Comparaison de deux notes : **proposition** seconde note en lecture seule d’abord, deux panneaux éditables seulement si le besoin est confirmé.
-- Ordre manuel des cartes : **à trancher** entre `.decoupe/order.json` et un champ `order` du frontmatter.
+- Ordre manuel des cartes : **décision** `.decoupe/order.json`, épinglées en tête avec tri manuel dans chaque groupe, mode désactivé en vue « Toutes les notes » et pendant une recherche.
 - Tons du pinyin : **décision** rester sur PowerToys pour l’instant ; les boutons intégrés restent une piste de confort sans version cible.
 - Prise de notes multilingue : **à définir** — quelles écritures doivent être garanties (chinois, japonais, coréen, arabe, autres) et jusqu’où vont les équivalences de recherche et de tri.
 - Mode immersion : **à trancher** — masquer les deux zones ensemble ou indépendamment, et mémoriser l’état entre les sessions.

@@ -119,4 +119,30 @@ describe('tri des notes', () => {
       'Chocolat'
     )
   })
+
+  it('respecte l’ordre manuel dans chaque groupe, épinglées en tête', () => {
+    const order = ['Notes/d.md', 'Notes/a.md', 'Notes/c.md', 'Notes/b.md']
+    expect(sortNotes(notes, 'manual', order).map((note) => note.path)).toEqual([
+      'Notes/c.md',
+      'Notes/d.md',
+      'Notes/a.md',
+      'Notes/b.md'
+    ])
+  })
+
+  it('ajoute les notes absentes de l’ordre à la fin de leur groupe', () => {
+    const order = ['Notes/b.md', 'Notes/c.md']
+    expect(sortNotes(notes, 'manual', order).map((note) => note.path)).toEqual([
+      'Notes/c.md',
+      'Notes/b.md',
+      'Notes/a.md',
+      'Notes/d.md'
+    ])
+  })
+
+  it('retombe sur le tri par modification quand l’ordre est vide', () => {
+    expect(sortNotes(notes, 'manual').map((note) => note.title)).toEqual(
+      sortNotes(notes, 'modified').map((note) => note.title)
+    )
+  })
 })
