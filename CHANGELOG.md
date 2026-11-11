@@ -5,6 +5,8 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) 
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-11-11
+
 ### Ajouté
 
 - **Comparer deux notes côte à côte** : seconde note en lecture seule à côté de la note active, avec le même rendu que l'éditeur (tableaux, listes de tâches, images, wiki-liens).

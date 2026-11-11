@@ -1,6 +1,6 @@
 ﻿# Roadmap Decoupe
 
-> État au 9 novembre 2026 — version 1.0.0
+> État au 11 novembre 2026 — version 1.1.0
 
 ## Principes
 
@@ -297,10 +297,10 @@
 12. [x] Distribution technique : installateur NSIS, README, BUILD.md, licence MIT et CI.
 13. [ ] Signature de code et première release publique.
 14. [x] Comparer deux notes côte à côte — 1.1.
-15. [x] Ordre manuel des cartes d’un espace — 1.2.
+15. [x] Ordre manuel des cartes d’un espace — 1.1.
 16. [ ] Boutons de tons pinyin — confort, sans version cible ; PowerToys reste la solution recommandée en attendant.
 17. [ ] Prise de notes multilingue — réflexion à découper avant toute implémentation.
-18. [x] Mode immersion : masquer la barre latérale et/ou la liste des notes — confort, sans version cible.
+18. [x] Mode immersion : masquer la barre latérale et/ou la liste des notes — 1.1, confort.
 
 ## Décisions à prendre
 

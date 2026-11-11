@@ -1,6 +1,6 @@
 {
   "name": "decoupe",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Prendre des notes, les organiser, les decouper.",
   "main": "./out/main/index.js",
   "author": "Decoupe",
